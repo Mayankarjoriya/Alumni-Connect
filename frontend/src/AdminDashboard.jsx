@@ -5,6 +5,7 @@ import api from './api/client';
 import AdminStats from './components/admin/AdminStats';
 import PendingUsersList from './components/admin/PendingUsersList';
 import DepartmentList from './components/admin/DepartmentList';
+import DepartmentDetails from './components/admin/DepartmentDetails';
 import AddDeptModal from './components/admin/AddDeptModal';
 import InvitePanel from './components/admin/InvitePanel';
 import PostCard from './components/feed/PostCard';
@@ -13,6 +14,7 @@ import ChatModal from './components/feed/ChatModal';
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('requests');
+    const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [pendingUsers, setPendingUsers] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [posts, setPosts] = useState([]);
@@ -90,6 +92,15 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleDeleteDept = async (deptName) => {
+        try {
+            await api.delete(`/api/admin/departments/${encodeURIComponent(deptName)}?college=${encodeURIComponent(currentUser.college)}`);
+            loadAdminData();
+        } catch (err) {
+            console.error("Failed to delete department:", err);
+        }
+    };
+
     const handleCreatePost = async ({ content, post_type }) => {
         try {
             await api.post('/api/posts', { content, post_type });
@@ -115,8 +126,6 @@ export default function AdminDashboard() {
     const NAV_ITEMS = [
         { id: 'requests',    icon: <ShieldCheck size={18} />, label: 'Verification Hub', badge: pendingUsers.length },
         { id: 'departments', icon: <BookOpen size={18} />,    label: 'Departments' },
-        { id: 'stats',       icon: <Users size={18} />,       label: 'Overview' },
-        { id: 'feed',        icon: <Newspaper size={18} />,   label: 'Network Feed' },
         { id: 'invite',      icon: <Mail size={18} />,        label: 'Invite Alumni' },
     ];
 
@@ -143,7 +152,10 @@ export default function AdminDashboard() {
                     {NAV_ITEMS.map(item => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveTab(item.id)}
+                            onClick={() => {
+                                setActiveTab(item.id);
+                                setSelectedDepartment(null);
+                            }}
                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                                 activeTab === item.id
                                     ? 'bg-amber-500 text-white shadow-md shadow-amber-100'
@@ -158,14 +170,6 @@ export default function AdminDashboard() {
                             )}
                         </button>
                     ))}
-                    
-                    {/* Bulletin Board — external link */}
-                    <button
-                        onClick={() => navigate('/bulletin')}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                    >
-                        <Megaphone size={18} /> Bulletin Board
-                    </button>
                 </nav>
 
                 <div className="mt-auto">
@@ -207,64 +211,22 @@ export default function AdminDashboard() {
 
                         {/* Tab 2: Departments */}
                         {activeTab === 'departments' && (
-                            <DepartmentList
-                                departments={departments}
-                                onOpenAddModal={() => setShowAddDeptModal(true)}
-                            />
+                            selectedDepartment ? (
+                                <DepartmentDetails 
+                                    department={selectedDepartment}
+                                    college={currentUser.college}
+                                    onBack={() => setSelectedDepartment(null)}
+                                />
+                            ) : (
+                                <DepartmentList
+                                    departments={departments}
+                                    onOpenAddModal={() => setShowAddDeptModal(true)}
+                                    onSelectDepartment={setSelectedDepartment}
+                                    onDeleteDepartment={handleDeleteDept}
+                                />
+                            )
                         )}
 
-                        {/* Tab 3: Institution Overview */}
-                        {activeTab === 'stats' && (
-                            <div>
-                                <h2 className="text-xl font-bold mb-4 text-gray-900">Institution Activity & Authority Overview</h2>
-                                <div className="bg-gray-50 border border-gray-200 p-6 rounded-2xl space-y-4">
-                                    <p className="text-sm text-gray-600 leading-relaxed">
-                                        As <span className="text-amber-600 font-bold">{currentUser.name}</span>, your authority covers student & faculty verification, department assignment, and skill credit oversight for <span className="text-gray-900 font-bold">{currentUser.college}</span>.
-                                    </p>
-                                    <div className="p-4 bg-white rounded-xl border border-gray-200 text-sm text-gray-700 space-y-2 font-medium">
-                                        <p>✓ All verified students inherit authority to receive faculty badges.</p>
-                                        <p>✓ Verified faculty members gain localized power to evaluate student projects.</p>
-                                        <p>✓ Alumni gain direct messaging access to top student candidates.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Tab 4: Network Feed */}
-                        {activeTab === 'feed' && (
-                            <div>
-                                <div className="flex justify-between items-center mb-6">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-gray-900">Network Feed</h2>
-                                        <p className="text-xs text-gray-500 mt-1">View and interact with community posts across the network.</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setFeedModal('post')}
-                                        className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-5 py-2.5 rounded-xl font-bold transition-colors shadow-sm"
-                                    >
-                                        + New Post
-                                    </button>
-                                </div>
-
-                                {posts.length === 0 ? (
-                                    <div className="text-center py-20 text-gray-400 text-sm font-medium">No posts yet in the network.</div>
-                                ) : (
-                                    <div className="columns-1 xl:columns-2 gap-4 space-y-4">
-                                        {posts.map(post => (
-                                            <PostCard
-                                                key={post.id}
-                                                post={post}
-                                                currentUser={{ ...currentUser, role: 'college_admin' }}
-                                                onLike={handleLike}
-                                                onComment={handleComment}
-                                                onEvaluate={() => {}}
-                                                onChat={(u) => { setActiveChatUser(u); setFeedModal('chat'); }}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
 
                         {/* Tab 5: Invite Alumni */}
                         {activeTab === 'invite' && <InvitePanel />}

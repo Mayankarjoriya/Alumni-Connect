@@ -11,7 +11,7 @@ from app.schemas.bulletin import CreateBulletinRequest
 
 router = APIRouter(prefix="/api/bulletin", tags=["Bulletin Board"])
 
-JOBS_ROLES  = {"faculty", "alumni", "college_admin"}
+JOBS_ROLES  = {"faculty", "alumni"}
 COLLAB_ROLES = {"student"}
 
 def _format(p: BulletinPost) -> dict:

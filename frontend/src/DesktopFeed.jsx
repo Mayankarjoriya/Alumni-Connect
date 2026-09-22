@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { Search, Bell, MessageSquare, Plus, TrendingUp } from 'lucide-react';
 import api from './api/client';
 import Sidebar from './components/common/Sidebar';
@@ -121,46 +120,35 @@ function RightPanel({ currentUser }) {
 
 /* ─── Main ─── */
 export default function DesktopFeed() {
+    const [posts, setPosts] = useState([]);
     const [activeModal, setActiveModal] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [activeChatUser, setActiveChatUser] = useState(null);
     const [evalStudent, setEvalStudent] = useState(null);
-    
-    const queryClient = useQueryClient();
+
     const currentUser = JSON.parse(localStorage.getItem('user') || '{"name":"User","role":"student"}');
 
     // Role dispatch
+    if (currentUser.role === 'college_admin') {
+        window.location.href = '/admin'; // Force redirect to avoid showing student feed
+        return null;
+    }
     if (currentUser.role === 'faculty') return <FacultyHub />;
     if (currentUser.role === 'alumni')  return <AlumniHub />;
 
-    const { data: posts = [], isLoading: loading } = useQuery({
-        queryKey: ['posts'],
-        queryFn: async () => {
-            const data = await api.get('/api/posts');
-            return data || [];
-        }
-    });
+    const fetchPosts = async () => {
+        try { const data = await api.get('/api/posts'); setPosts(data || []); }
+        catch (err) { console.error('Fetch posts error:', err); }
+        finally { setLoading(false); }
+    };
 
-    const createPostMutation = useMutation({
-        mutationFn: ({ content, post_type }) => api.post('/api/posts', { content, post_type }),
-        onSuccess: () => {
-            setActiveModal(null);
-            queryClient.invalidateQueries({ queryKey: ['posts'] });
-        }
-    });
+    useEffect(() => { fetchPosts(); }, []);
 
-    const likeMutation = useMutation({
-        mutationFn: (id) => api.post(`/api/posts/${id}/like`),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] })
-    });
-
-    const commentMutation = useMutation({
-        mutationFn: ({ id, content }) => api.post(`/api/posts/${id}/comment`, { content }),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] })
-    });
-
-    const handleCreatePost = (data) => createPostMutation.mutate(data);
-    const handleLike = (id) => likeMutation.mutate(id);
-    const handleComment = (id, content) => commentMutation.mutate({ id, content });
+    const handleCreatePost = async ({ content, post_type }) => {
+        try { await api.post('/api/posts', { content, post_type }); setActiveModal(null); fetchPosts(); } catch {}
+    };
+    const handleLike    = async (id) => { try { await api.post(`/api/posts/${id}/like`); fetchPosts(); } catch {} };
+    const handleComment = async (id, content) => { try { await api.post(`/api/posts/${id}/comment`, { content }); fetchPosts(); } catch {} };
     
     const handleOpenChat = (user) => { setActiveChatUser(user); setActiveModal('messages'); };
     const handleOpenEvaluate = (student) => { setEvalStudent(student); setActiveModal('evaluate'); };
@@ -254,7 +242,7 @@ export default function DesktopFeed() {
                 isOpen={activeModal === 'evaluate'}
                 onClose={() => { setActiveModal(null); setEvalStudent(null); }}
                 student={evalStudent}
-                onEvaluated={() => queryClient.invalidateQueries({ queryKey: ['posts'] })}
+                onEvaluated={fetchPosts}
             />
         </div>
     );

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Code, Plus, Award } from 'lucide-react';
 import api from './api/client';
@@ -16,10 +15,6 @@ export default function ProfilePage() {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const [profileData, setProfileData] = useState(null);
-    const [assignedStudents, setAssignedStudents] = useState([]);
-    const [loading, setLoading] = useState(true);
-
     // Modals
     const [showAddProjectModal, setShowAddProjectModal] = useState(false);
     const [showEditProfileModal, setShowEditProfileModal] = useState(false);
@@ -29,49 +24,60 @@ export default function ProfilePage() {
     // State for tabs
     const [activeTab, setActiveTab] = useState('Projects');
 
+    const [profileData, setProfileData] = useState(null);
+    const [assignedStudents, setAssignedStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+
     const currentUser = JSON.parse(localStorage.getItem('user') || '{"name": "User", "role": "student"}');
     const isOwnProfile = id === 'me' || id === currentUser.id;
-    const targetId = isOwnProfile ? (currentUser.id || "u1") : id;
-    const queryClient = useQueryClient();
 
-    const { data: profileData, isLoading: loadingProfile } = useQuery({
-        queryKey: ['profile', targetId],
-        queryFn: async () => {
+    const loadProfile = async () => {
+        try {
+            setLoading(true);
+            const targetId = isOwnProfile ? (currentUser.id || "u1") : id;
             const data = await api.get(`/api/users/${targetId}`);
-            return data;
-        },
-        retry: false
-    });
+            setProfileData(data);
 
-    const { data: assignedStudents = [] } = useQuery({
-        queryKey: ['assigned-students'],
-        queryFn: async () => {
-            const students = await api.get('/api/faculty/assigned-students');
-            return students || [];
-        },
-        enabled: currentUser.role === 'faculty' && isOwnProfile
-    });
+            // If faculty viewing own profile, load assigned students
+            if (currentUser.role === 'faculty' && isOwnProfile) {
+                const students = await api.get('/api/faculty/assigned-students');
+                setAssignedStudents(students || []);
+            }
+        } catch (err) {
+            console.error("Error loading profile:", err);
+            if (isOwnProfile) {
+                setProfileData(currentUser);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const addProjectMutation = useMutation({
-        mutationFn: (projectData) => api.post('/api/projects', projectData),
-        onSuccess: () => {
+    useEffect(() => {
+        loadProfile();
+    }, [id]);
+
+    const handleAddProject = async ({ title, tech_stack, description }) => {
+        try {
+            await api.post('/api/projects', { title, tech_stack, description });
             setShowAddProjectModal(false);
-            queryClient.invalidateQueries({ queryKey: ['profile', targetId] });
+            loadProfile();
+        } catch (err) {
+            console.error("Failed to add project:", err);
         }
-    });
+    };
 
-    const editProfileMutation = useMutation({
-        mutationFn: (updateData) => api.put('/api/users/me', updateData),
-        onSuccess: () => {
+    const handleEditProfile = async (updateData) => {
+        try {
+            await api.put('/api/users/me', updateData);
             setShowEditProfileModal(false);
-            queryClient.invalidateQueries({ queryKey: ['profile', targetId] });
+            loadProfile();
+        } catch (err) {
+            console.error("Failed to update profile:", err);
         }
-    });
+    };
 
-    const handleAddProject = (data) => addProjectMutation.mutate(data);
-    const handleEditProfile = (data) => editProfileMutation.mutate(data);
-
-    if (loadingProfile) {
+    if (loading) {
         return (
             <div className="min-h-screen bg-[#F4F5FA] text-gray-900 flex items-center justify-center font-sans">
                 <p className="text-gray-500 text-sm font-medium">Loading profile portfolio...</p>
@@ -229,7 +235,7 @@ export default function ProfilePage() {
                 isOpen={!!evalStudent}
                 onClose={() => setEvalStudent(null)}
                 student={evalStudent}
-                onEvaluated={() => queryClient.invalidateQueries({ queryKey: ['profile', targetId] })}
+                onEvaluated={() => loadProfile()}
             />
 
             <ChatModal

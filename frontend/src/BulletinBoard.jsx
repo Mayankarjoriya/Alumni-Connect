@@ -9,7 +9,7 @@ const BOARD_CONFIG = {
         label: 'Jobs & Opportunities',
         icon: <Briefcase size={15} />,
         description: 'Internships, job openings, and professional opportunities — posted by faculty, alumni, and admins.',
-        allowedRoles: ['faculty', 'alumni', 'college_admin'],
+        allowedRoles: ['faculty', 'alumni'],
         accentTab:    'text-violet-600 border-violet-600 bg-white',
         accentBtn:    'bg-violet-600 hover:bg-violet-700 text-white',
         accentLink:   'text-violet-600 border-violet-200 bg-violet-50 hover:bg-violet-100',
@@ -192,6 +192,11 @@ export default function BulletinBoard() {
     const [success, setSuccess] = useState('');
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (currentUser.role === 'college_admin') {
+        window.location.href = '/admin'; // Force redirect to avoid showing bulletin board
+        return null;
+    }
+    
     const cfg = BOARD_CONFIG[activeBoard];
     const canPost = cfg.allowedRoles.includes(currentUser.role);
 

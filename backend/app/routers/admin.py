@@ -44,16 +44,26 @@ def get_departments(
     if college:
         query = query.filter(Department.college == college)
     depts = query.all()
-    return [
-        {
+    
+    result = []
+    for d in depts:
+        base_query = db.query(User).filter(User.department == d.name, User.is_approved == True)
+        if college:
+            base_query = base_query.filter(User.college == college)
+            
+        students = base_query.filter(User.role == "student").count()
+        faculty = base_query.filter(User.role == "faculty").count()
+        alumni = base_query.filter(User.role == "alumni").count()
+        
+        result.append({
             "name": d.name,
             "college": d.college,
             "head": d.head,
-            "total_faculty": d.total_faculty,
-            "total_students": d.total_students
-        }
-        for d in depts
-    ]
+            "total_students": students,
+            "total_faculty": faculty,
+            "total_alumni": alumni
+        })
+    return result
 
 @router.post("/departments")
 def create_department(
@@ -79,6 +89,24 @@ def create_department(
         "total_faculty": new_dept.total_faculty,
         "total_students": new_dept.total_students
     }
+
+@router.delete("/departments/{department_name}")
+def delete_department(
+    department_name: str,
+    college: Optional[str] = "CIITM Institute of Technology",
+    db: Session = Depends(get_db)
+):
+    dept = db.query(Department).filter(
+        Department.name == department_name,
+        Department.college == college
+    ).first()
+    
+    if not dept:
+        raise HTTPException(status_code=404, detail="Department not found")
+        
+    db.delete(dept)
+    db.commit()
+    return {"message": f"Department {department_name} deleted successfully"}
 
 @router.post("/assign-faculty")
 def assign_faculty(request: AssignFacultyRequest, db: Session = Depends(get_db)):
@@ -139,3 +167,16 @@ def invite_alumni(request: InviteRequest):
         "message": f"Invitations queued for {len(valid_emails)} recipient(s). Configure SMTP to enable real delivery.",
         "sent_to": valid_emails
     }
+
+@router.get("/departments/{department_name}/users")
+def get_department_users(
+    department_name: str,
+    college: Optional[str] = "CIITM Institute of Technology",
+    db: Session = Depends(get_db)
+):
+    query = db.query(User).filter(User.department == department_name, User.is_approved == True)
+    if college:
+        query = query.filter(User.college == college)
+    users = query.all()
+    return [format_user_dict(u) for u in users]
+
