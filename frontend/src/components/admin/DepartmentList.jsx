@@ -1,7 +1,19 @@
-import React from 'react';
-import { Building2, Plus, ChevronRight, Trash2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Building2, Plus, ChevronRight, Trash2, MoreVertical } from 'lucide-react';
 
-export default function DepartmentList({ departments = [], onOpenAddModal, onSelectDepartment, onDeleteDepartment }) {
+export default function DepartmentList({ departments = [], onOpenAddModal, onSelectDepartment, onDeleteDepartment, onChangeHod }) {
+    const [openDropdown, setOpenDropdown] = useState(null);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setOpenDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -24,18 +36,44 @@ export default function DepartmentList({ departments = [], onOpenAddModal, onSel
                         onClick={() => onSelectDepartment(dept.name)}
                         className="bg-white border border-gray-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm hover:shadow-md hover:border-emerald-200 cursor-pointer transition-all group relative"
                     >
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm(`Are you sure you want to delete ${dept.name}?`)) {
-                                    onDeleteDepartment(dept.name);
-                                }
-                            }}
-                            className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
-                            title="Delete Department"
-                        >
-                            <Trash2 size={16} />
-                        </button>
+                        <div className="absolute top-4 right-4" ref={openDropdown === dept.name ? dropdownRef : null}>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenDropdown(openDropdown === dept.name ? null : dept.name);
+                                }}
+                                className="p-2 text-gray-300 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <MoreVertical size={16} />
+                            </button>
+                            
+                            {openDropdown === dept.name && (
+                                <div className="absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onChangeHod(dept.name);
+                                            setOpenDropdown(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-xl"
+                                    >
+                                        <Building2 size={14} /> Change HOD
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (window.confirm(`Are you sure you want to delete ${dept.name}?`)) {
+                                                onDeleteDepartment(dept.name);
+                                            }
+                                            setOpenDropdown(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2 rounded-b-xl border-t border-gray-50"
+                                    >
+                                        <Trash2 size={14} /> Delete Dept
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         
                         <div>
                             <div className="flex items-center justify-between mb-2 pr-8">

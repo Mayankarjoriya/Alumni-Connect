@@ -31,6 +31,11 @@ def get_posts(db: Session = Depends(get_db)):
     posts = db.query(Post).order_by(Post.created_at.desc()).all()
     return [format_post_dict(p) for p in posts]
 
+@router.get("/by-user/{user_id}")
+def get_user_posts(user_id: str, db: Session = Depends(get_db)):
+    posts = db.query(Post).filter(Post.author_id == user_id).order_by(Post.created_at.desc()).all()
+    return [format_post_dict(p) for p in posts]
+
 @router.post("")
 def create_post(
     request: CreatePostRequest,

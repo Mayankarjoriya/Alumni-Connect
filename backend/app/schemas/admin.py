@@ -7,7 +7,7 @@ class VerifyUserRequest(BaseModel):
 
 class CreateDepartmentRequest(BaseModel):
     name: str
-    head_id: Optional[str] = None
+    head: Optional[str] = None
 
 class AssignFacultyRequest(BaseModel):
     faculty_id: str

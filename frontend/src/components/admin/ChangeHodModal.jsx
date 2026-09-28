@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { Search } from 'lucide-react';
 
-export default function AddDeptModal({ isOpen, onClose, onSubmit, college }) {
-    const [deptName, setDeptName] = useState('');
+export default function ChangeHodModal({ isOpen, onClose, onSubmit, departmentName, college }) {
     const [hodSearch, setHodSearch] = useState('');
     const [selectedHod, setSelectedHod] = useState(null);
     const [facultyList, setFacultyList] = useState([]);
@@ -20,7 +19,6 @@ export default function AddDeptModal({ isOpen, onClose, onSubmit, college }) {
                 }
             };
             fetchFaculty();
-            setDeptName('');
             setHodSearch('');
             setSelectedHod(null);
             setShowDropdown(false);
@@ -31,8 +29,8 @@ export default function AddDeptModal({ isOpen, onClose, onSubmit, college }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!deptName.trim()) return;
-        onSubmit({ name: deptName, head: selectedHod ? selectedHod.name : 'Unassigned' });
+        if (!selectedHod) return;
+        onSubmit(departmentName, selectedHod.id);
     };
 
     const filteredFaculty = facultyList.filter(f => f.name.toLowerCase().includes(hodSearch.toLowerCase()));
@@ -43,26 +41,15 @@ export default function AddDeptModal({ isOpen, onClose, onSubmit, college }) {
                 className="bg-white border border-gray-100 rounded-3xl w-full max-w-md p-6 shadow-xl text-gray-900"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h2 className="text-lg font-bold mb-4">Add New College Department</h2>
+                <h2 className="text-lg font-bold mb-4">Change HOD for {departmentName}</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="text-xs text-gray-700 font-bold block mb-1">Department Name</label>
-                        <input
-                            type="text"
-                            placeholder="e.g. Mechanical Engineering"
-                            value={deptName}
-                            onChange={(e) => setDeptName(e.target.value)}
-                            required
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-amber-400 transition-colors"
-                        />
-                    </div>
                     <div className="relative">
-                        <label className="text-xs text-gray-700 font-bold block mb-1">Select Head of Department (Optional)</label>
+                        <label className="text-xs text-gray-700 font-bold block mb-1">Search Faculty Member</label>
                         <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search faculty by name..."
+                                placeholder="Search by name..."
                                 value={hodSearch}
                                 onChange={(e) => {
                                     setHodSearch(e.target.value);
@@ -108,9 +95,10 @@ export default function AddDeptModal({ isOpen, onClose, onSubmit, college }) {
                         </button>
                         <button
                             type="submit"
-                            className="bg-emerald-500 hover:bg-emerald-600 px-6 py-2 rounded-xl text-sm font-bold text-white transition-colors shadow-sm"
+                            disabled={!selectedHod}
+                            className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:hover:bg-amber-500 px-6 py-2 rounded-xl text-sm font-bold text-white transition-colors shadow-sm"
                         >
-                            Save Department
+                            Update HOD
                         </button>
                     </div>
                 </form>

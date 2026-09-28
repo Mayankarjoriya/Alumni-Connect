@@ -61,7 +61,10 @@ def seed_initial_data(db: Session):
         department="Computer Science",
         bio="Cybersecurity enthusiast exploring SOC, VAPT, and Blue Team ops.",
         is_approved=True,
-        credits=45
+        credits=45,
+        location="Mumbai, India",
+        skills="Python, React, Linux, Wireshark, Metasploit",
+        graduation_year="2027"
     )
     u2 = User(
         id="u2",
@@ -73,7 +76,12 @@ def seed_initial_data(db: Session):
         department="Computer Science",
         bio="Senior Professor in Computer Science & Cyber Security.",
         is_approved=True,
-        credits=0
+        credits=0,
+        location="New Delhi, India",
+        designation="Professor",
+        experience_years=18,
+        research_interests="Network Security, Cryptography, Blockchain",
+        courses_taught="Cyber Security, Distributed Systems, Ethical Hacking"
     )
     u3 = User(
         id="u3",
@@ -87,7 +95,13 @@ def seed_initial_data(db: Session):
         job_title="Senior Security Analyst",
         bio="Alumni 2022 batch. Hiring talent for SOC Analyst roles.",
         is_approved=True,
-        credits=0
+        credits=0,
+        location="Bengaluru, India",
+        industry="Cybersecurity / IT",
+        experience_years=4,
+        graduation_year="2022",
+        open_to_mentor=True,
+        skills="Security Operations, Threat Hunting, SIEM, Incident Response"
     )
     u3_alias = User(
         id="u3_alias",
@@ -137,7 +151,9 @@ def seed_initial_data(db: Session):
         department="Mechanical",
         bio="Robotics developer and IoT builder.",
         is_approved=True,
-        credits=30
+        credits=30,
+        location="Jaipur, India",
+        skills="AutoCAD, Arduino, C++, Python, ROS"
     )
     db.add_all([u1, u2, u3, u3_alias, u4, u5, u6])
     db.commit()

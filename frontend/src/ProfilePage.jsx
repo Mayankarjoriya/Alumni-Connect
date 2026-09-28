@@ -7,6 +7,8 @@ import ProjectCard from './components/profile/ProjectCard';
 import AddProjectModal from './components/profile/AddProjectModal';
 import EditProfileModal from './components/profile/EditProfileModal';
 import FacultyEvalPanel from './components/profile/FacultyEvalPanel';
+import FacultyProfilePanel from './components/profile/FacultyProfilePanel';
+import AlumniProfilePanel from './components/profile/AlumniProfilePanel';
 import EvaluateModal from './components/feed/EvaluateModal';
 import ChatModal from './components/feed/ChatModal';
 import DeskScene from './components/three/DeskScene';
@@ -69,7 +71,7 @@ export default function ProfilePage() {
 
     const handleEditProfile = async (updateData) => {
         try {
-            await api.put('/api/users/me', updateData);
+            await api.patch('/api/users/me', updateData);
             setShowEditProfileModal(false);
             loadProfile();
         } catch (err) {
@@ -131,7 +133,17 @@ export default function ProfilePage() {
                     onEditProfile={() => setShowEditProfileModal(true)}
                 />
 
-                {/* Faculty Evaluation Panel */}
+                {/* Faculty Profile Panel */}
+                {profileData.role === 'faculty' && (
+                    <FacultyProfilePanel profileData={profileData} isOwnProfile={isOwnProfile} />
+                )}
+
+                {/* Alumni Profile Panel */}
+                {profileData.role === 'alumni' && (
+                    <AlumniProfilePanel profileData={profileData} />
+                )}
+
+                {/* Faculty Evaluation Panel (own profile only) */}
                 {currentUser.role === 'faculty' && isOwnProfile && (
                     <FacultyEvalPanel
                         department={profileData.department}
@@ -141,80 +153,84 @@ export default function ProfilePage() {
                 )}
 
                 {/* Custom Tabs Navigation */}
-                <div className="flex items-center gap-8 border-b border-gray-200 mb-6 px-4">
-                    {['Projects', 'Badges'].map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`pb-4 text-sm font-bold transition-colors relative ${activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-                        >
-                            {tab}
-                            {activeTab === tab && (
-                                <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-gray-900 rounded-t-full"></div>
+                {profileData.role === 'student' && (
+                    <>
+                        <div className="flex items-center gap-8 border-b border-gray-200 mb-6 px-4">
+                            {['Projects', 'Badges'].map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`pb-4 text-sm font-bold transition-colors relative ${activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    {tab}
+                                    {activeTab === tab && (
+                                        <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-gray-900 rounded-t-full"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Main Content Area */}
+                        <div className="mb-12">
+                            {activeTab === 'Projects' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-lg font-black text-gray-900">Digital Workspace</h3>
+                                        {isOwnProfile && profileData.role === 'student' && (
+                                            <button
+                                                onClick={() => setShowAddProjectModal(true)}
+                                                className="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors shadow-sm"
+                                            >
+                                                <Plus size={14} /> Upload Project
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        {profileData.projects && profileData.projects.length > 0 ? (
+                                            profileData.projects.map((proj, idx) => (
+                                                <ProjectCard key={proj.id || idx} project={proj} />
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
+                                                No projects uploaded to portfolio yet.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             )}
-                        </button>
-                    ))}
-                </div>
 
-                {/* Main Content Area */}
-                <div className="mb-12">
-                    {activeTab === 'Projects' && (
-                        <div>
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-black text-gray-900">Digital Workspace</h3>
-                                {isOwnProfile && profileData.role === 'student' && (
-                                    <button
-                                        onClick={() => setShowAddProjectModal(true)}
-                                        className="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors shadow-sm"
-                                    >
-                                        <Plus size={14} /> Upload Project
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {profileData.projects && profileData.projects.length > 0 ? (
-                                    profileData.projects.map((proj, idx) => (
-                                        <ProjectCard key={proj.id || idx} project={proj} />
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
-                                        No projects uploaded to portfolio yet.
-                                    </p>
-                                )}
-                            </div>
+                            {activeTab === 'Badges' && (
+                                <div>
+                                    <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
+                                        <Award size={20} className="text-amber-500" /> Verified Achievements
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                        {profileData.badges && profileData.badges.length > 0 ? (
+                                            profileData.badges.map((b, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="bg-white rounded-3xl p-5 border border-gray-100 hover:border-amber-200 transition-colors shadow-sm flex flex-col items-center text-center"
+                                                >
+                                                    <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-3">
+                                                        <Award size={24} className="text-amber-500" />
+                                                    </div>
+                                                    <p className="font-bold text-sm text-emerald-600 mb-1">{b.name}</p>
+                                                    <p className="text-[11px] text-gray-500 font-medium">By: {b.issuer}</p>
+                                                    <p className="text-[10px] text-gray-400 mt-1 font-bold">{b.date}</p>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
+                                                No faculty badges awarded yet.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
-
-                    {activeTab === 'Badges' && (
-                        <div>
-                            <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
-                                <Award size={20} className="text-amber-500" /> Verified Achievements
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                {profileData.badges && profileData.badges.length > 0 ? (
-                                    profileData.badges.map((b, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="bg-white rounded-3xl p-5 border border-gray-100 hover:border-amber-200 transition-colors shadow-sm flex flex-col items-center text-center"
-                                        >
-                                            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-3">
-                                                <Award size={24} className="text-amber-500" />
-                                            </div>
-                                            <p className="font-bold text-sm text-emerald-600 mb-1">{b.name}</p>
-                                            <p className="text-[11px] text-gray-500 font-medium">By: {b.issuer}</p>
-                                            <p className="text-[10px] text-gray-400 mt-1 font-bold">{b.date}</p>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
-                                        No faculty badges awarded yet.
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                    </>
+                )}
             </div>
 
             {/* Modals */}

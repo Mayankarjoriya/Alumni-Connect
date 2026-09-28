@@ -45,6 +45,17 @@ class UserProfileResponse(BaseModel):
 class UserUpdateProfileSchema(BaseModel):
     bio: Optional[str] = None
     profile_picture_url: Optional[str] = None
+    cover_picture_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
     portfolio_url: Optional[str] = None
+    # Extended fields
+    location: Optional[str] = None
+    skills: Optional[str] = None
+    designation: Optional[str] = None
+    experience_years: Optional[int] = None
+    research_interests: Optional[str] = None
+    courses_taught: Optional[str] = None
+    open_to_mentor: Optional[bool] = None
+    graduation_year: Optional[str] = None
+    industry: Optional[str] = None

@@ -6,7 +6,9 @@ import AdminStats from './components/admin/AdminStats';
 import PendingUsersList from './components/admin/PendingUsersList';
 import DepartmentList from './components/admin/DepartmentList';
 import DepartmentDetails from './components/admin/DepartmentDetails';
+import AllUsersList from './components/admin/AllUsersList';
 import AddDeptModal from './components/admin/AddDeptModal';
+import ChangeHodModal from './components/admin/ChangeHodModal';
 import InvitePanel from './components/admin/InvitePanel';
 import PostCard from './components/feed/PostCard';
 import CreatePostModal from './components/feed/CreatePostModal';
@@ -25,6 +27,7 @@ export default function AdminDashboard() {
         pending_verifications: 0
     });
     const [showAddDeptModal, setShowAddDeptModal] = useState(false);
+    const [changeHodDept, setChangeHodDept] = useState(null);
     const [notice, setNotice] = useState('');
 
     // Feed state
@@ -80,10 +83,11 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleCreateDept = async (deptName) => {
+    const handleCreateDept = async ({ name, head }) => {
         try {
             await api.post(`/api/admin/departments?college=${encodeURIComponent(currentUser.college)}`, {
-                name: deptName
+                name,
+                head
             });
             setShowAddDeptModal(false);
             loadAdminData();
@@ -98,6 +102,21 @@ export default function AdminDashboard() {
             loadAdminData();
         } catch (err) {
             console.error("Failed to delete department:", err);
+        }
+    };
+
+    const handleChangeHod = async (deptName, facultyId) => {
+        try {
+            await api.post(`/api/admin/assign-faculty`, {
+                faculty_id: facultyId,
+                department_name: deptName
+            });
+            setChangeHodDept(null);
+            loadAdminData();
+            setNotice(`Successfully changed HOD for ${deptName}`);
+            setTimeout(() => setNotice(''), 3000);
+        } catch (err) {
+            console.error("Failed to change HOD:", err);
         }
     };
 
@@ -126,6 +145,7 @@ export default function AdminDashboard() {
     const NAV_ITEMS = [
         { id: 'requests',    icon: <ShieldCheck size={18} />, label: 'Verification Hub', badge: pendingUsers.length },
         { id: 'departments', icon: <BookOpen size={18} />,    label: 'Departments' },
+        { id: 'users',       icon: <Users size={18} />,       label: 'All Users' },
         { id: 'invite',      icon: <Mail size={18} />,        label: 'Invite Alumni' },
     ];
 
@@ -223,10 +243,13 @@ export default function AdminDashboard() {
                                     onOpenAddModal={() => setShowAddDeptModal(true)}
                                     onSelectDepartment={setSelectedDepartment}
                                     onDeleteDepartment={handleDeleteDept}
+                                    onChangeHod={setChangeHodDept}
                                 />
                             )
                         )}
 
+                        {/* Tab 3: All Users */}
+                        {activeTab === 'users' && <AllUsersList college={currentUser.college} />}
 
                         {/* Tab 5: Invite Alumni */}
                         {activeTab === 'invite' && <InvitePanel />}
@@ -239,6 +262,14 @@ export default function AdminDashboard() {
                 isOpen={showAddDeptModal}
                 onClose={() => setShowAddDeptModal(false)}
                 onSubmit={handleCreateDept}
+                college={currentUser.college}
+            />
+            <ChangeHodModal
+                isOpen={!!changeHodDept}
+                onClose={() => setChangeHodDept(null)}
+                departmentName={changeHodDept}
+                college={currentUser.college}
+                onSubmit={handleChangeHod}
             />
 
             {/* Modals: Feed */}

@@ -15,6 +15,7 @@ export default function AuthPage() {
     const [company, setCompany] = useState('');
     const [jobTitle, setJobTitle] = useState('');
     const [collegesList, setCollegesList] = useState([]);
+    const [departmentsList, setDepartmentsList] = useState([]);
 
     const [error, setError] = useState(null);
     const [notice, setNotice] = useState(null);
@@ -31,6 +32,23 @@ export default function AuthPage() {
                 { id: "iitd", name: "IIT Delhi" }
             ]));
     }, []);
+
+    useEffect(() => {
+        if (!isLogin && college) {
+            api.get(`/api/admin/departments?college=${encodeURIComponent(college)}`)
+                .then(data => {
+                    setDepartmentsList(data || []);
+                    if (data && data.length > 0) {
+                        if (!data.find(d => d.name === department)) {
+                            setDepartment(data[0].name);
+                        }
+                    } else {
+                        setDepartment('');
+                    }
+                })
+                .catch(() => setDepartmentsList([]));
+        }
+    }, [college, isLogin]);
 
     const handleQuickLogin = (demoEmail) => {
         setEmail(demoEmail);
@@ -216,8 +234,6 @@ export default function AuthPage() {
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors"
                                         >
                                             <option value="student">Student</option>
-                                            <option value="faculty">Faculty</option>
-                                            <option value="alumni">Alumni</option>
                                             <option value="college_admin">College Admin</option>
                                         </select>
                                     </div>
@@ -237,67 +253,63 @@ export default function AuthPage() {
 
                                 <div>
                                     <label className="text-xs text-gray-700 font-bold block mb-1">Academic Department</label>
-                                    <input
-                                        type="text"
-                                        value={department}
-                                        onChange={(e) => setDepartment(e.target.value)}
-                                        placeholder="e.g. Computer Science"
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors"
-                                    />
+                                    {departmentsList.length > 0 ? (
+                                        <select
+                                            value={department}
+                                            onChange={(e) => setDepartment(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors"
+                                        >
+                                            {departmentsList.map(d => (
+                                                <option key={d.name} value={d.name}>{d.name}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <div className="w-full bg-gray-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 font-medium">
+                                            No departments available. An Admin must create one first.
+                                        </div>
+                                    )}
                                 </div>
 
-                                {role === 'alumni' && (
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs text-gray-700 font-bold block mb-1">Company</label>
-                                            <input
-                                                type="text"
-                                                value={company}
-                                                onChange={(e) => setCompany(e.target.value)}
-                                                placeholder="e.g. Google"
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-gray-700 font-bold block mb-1">Job Title</label>
-                                            <input
-                                                type="text"
-                                                value={jobTitle}
-                                                onChange={(e) => setJobTitle(e.target.value)}
-                                                placeholder="e.g. Security Analyst"
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors"
-                                            />
-                                        </div>
+                                {role === 'student' && (
+                                    <div>
+                                        <label className="text-xs text-gray-700 font-bold block mb-1">College ID Number</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="e.g. 2024-CS-102"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors"
+                                        />
+                                        <p className="text-[10px] text-gray-500 mt-1">Required for instant auto-approval.</p>
                                     </div>
                                 )}
                             </>
                         )}
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm mt-6 disabled:opacity-50"
-                        >
-                            {loading ? "Processing..." : isLogin ? "Sign In" : "Register Account"}
-                        </button>
-                    </form>
+                <button
+                    type="submit"
+                    disabled={loading || (!isLogin && departmentsList.length === 0)}
+                    className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm mt-6 disabled:opacity-50"
+                >
+                    {loading ? "Processing..." : isLogin ? "Sign In" : "Register Account"}
+                </button>
+            </form>
 
-                    <div className="text-center mt-8">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setIsLogin(!isLogin);
-                                setError(null);
-                                setNotice(null);
-                            }}
-                            className="text-sm text-gray-500 font-medium hover:text-violet-600 transition-colors"
-                        >
-                            {isLogin ? "Need an account? Register your profile" : "Already have an account? Sign in"}
-                        </button>
-                    </div>
-                </div>
-
+            <div className="text-center mt-8">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setIsLogin(!isLogin);
+                        setError(null);
+                        setNotice(null);
+                    }}
+                    className="text-sm text-gray-500 font-medium hover:text-violet-600 transition-colors"
+                >
+                    {isLogin ? "Need an account? Register your profile" : "Already have an account? Sign in"}
+                </button>
             </div>
         </div>
+
+            </div >
+        </div >
     );
 }

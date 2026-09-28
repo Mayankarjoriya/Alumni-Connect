@@ -17,11 +17,23 @@ class User(Base):
     job_title = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
     profile_picture_url = Column(String, nullable=True)
+    cover_picture_url = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)
     github_url = Column(String, nullable=True)
     portfolio_url = Column(String, nullable=True)
     is_approved = Column(Boolean, default=True)
     credits = Column(Integer, default=0)
+
+    # Extended profile fields
+    location = Column(String, nullable=True)                # "Mumbai, India"
+    skills = Column(Text, nullable=True)                    # comma-separated: "Python,React,ML"
+    designation = Column(String, nullable=True)             # Faculty: "Assistant Professor"
+    experience_years = Column(Integer, nullable=True)       # Faculty/Alumni
+    research_interests = Column(Text, nullable=True)        # Faculty: comma-separated tags
+    courses_taught = Column(Text, nullable=True)            # Faculty: comma-separated
+    open_to_mentor = Column(Boolean, default=False)         # Alumni
+    graduation_year = Column(String, nullable=True)         # Alumni / Student
+    industry = Column(String, nullable=True)                # Alumni industry sector
 
     # Relationships
     badges = relationship("Badge", back_populates="user", cascade="all, delete-orphan", lazy="selectin")

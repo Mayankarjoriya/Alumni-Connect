@@ -74,7 +74,7 @@ def create_department(
     new_dept = Department(
         name=request.name,
         college=college,
-        head="Unassigned",
+        head=request.head or "Unassigned",
         total_faculty=0,
         total_students=0
     )
@@ -180,3 +180,24 @@ def get_department_users(
     users = query.all()
     return [format_user_dict(u) for u in users]
 
+@router.get("/faculty-list")
+def get_faculty_list(
+    college: Optional[str] = "CIITM Institute of Technology",
+    db: Session = Depends(get_db)
+):
+    query = db.query(User).filter(User.role == "faculty", User.is_approved == True)
+    if college:
+        query = query.filter(User.college == college)
+    faculty = query.all()
+    return [{"id": f.id, "name": f.name, "department": f.department} for f in faculty]
+
+@router.get("/users")
+def get_all_users(
+    college: Optional[str] = "CIITM Institute of Technology",
+    db: Session = Depends(get_db)
+):
+    query = db.query(User).filter(User.is_approved == True)
+    if college:
+        query = query.filter(User.college == college)
+    users = query.all()
+    return [format_user_dict(u) for u in users]

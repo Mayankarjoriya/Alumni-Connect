@@ -103,19 +103,21 @@ export default function ProfileHeader({ profileData, isOwnProfile, onSendMessage
                         </div>
 
                         {/* Stats Section (Right aligned) */}
-                        <div className="flex gap-6 md:gap-8 bg-white/50 rounded-2xl p-4 border border-gray-50">
-                            {stats.map((stat, i) => (
-                                <div key={i} className="flex flex-col items-center">
-                                    <p className="text-gray-500 text-xs font-bold mb-1">{stat.label}</p>
-                                    <div 
-                                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-lg shadow-sm"
-                                        style={{ backgroundColor: stat.color }}
-                                    >
-                                        {stat.value}
+                        {profileData.role === 'student' && (
+                            <div className="flex gap-6 md:gap-8 bg-white/50 rounded-2xl p-4 border border-gray-50">
+                                {stats.map((stat, i) => (
+                                    <div key={i} className="flex flex-col items-center">
+                                        <p className="text-gray-500 text-xs font-bold mb-1">{stat.label}</p>
+                                        <div 
+                                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-lg shadow-sm"
+                                            style={{ backgroundColor: stat.color }}
+                                        >
+                                            {stat.value}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

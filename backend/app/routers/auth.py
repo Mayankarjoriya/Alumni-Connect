@@ -21,11 +21,22 @@ def format_user_dict(user: User) -> dict:
         "job_title": user.job_title,
         "bio": user.bio,
         "profile_picture_url": user.profile_picture_url,
+        "cover_picture_url": user.cover_picture_url,
         "linkedin_url": user.linkedin_url,
         "github_url": user.github_url,
         "portfolio_url": user.portfolio_url,
         "is_approved": user.is_approved,
         "credits": user.credits,
+        # Extended fields
+        "location": user.location,
+        "skills": user.skills,
+        "designation": user.designation,
+        "experience_years": user.experience_years,
+        "research_interests": user.research_interests,
+        "courses_taught": user.courses_taught,
+        "open_to_mentor": user.open_to_mentor,
+        "graduation_year": user.graduation_year,
+        "industry": user.industry,
         "badges": [{"name": b.name, "issuer": b.issuer, "date": b.date} for b in user.badges],
         "projects": [{"id": p.id, "title": p.title, "tech": p.tech, "description": p.description, "github": p.github} for p in user.projects]
     }

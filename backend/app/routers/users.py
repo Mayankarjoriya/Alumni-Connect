@@ -9,7 +9,7 @@ from app.schemas.user import UserUpdateProfileSchema
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
-@router.put("/me")
+@router.patch("/me")
 def update_profile(
     update_data: UserUpdateProfileSchema,
     db: Session = Depends(get_db),
@@ -19,12 +19,33 @@ def update_profile(
         current_user.bio = update_data.bio
     if update_data.profile_picture_url is not None:
         current_user.profile_picture_url = update_data.profile_picture_url
+    if update_data.cover_picture_url is not None:
+        current_user.cover_picture_url = update_data.cover_picture_url
     if update_data.linkedin_url is not None:
         current_user.linkedin_url = update_data.linkedin_url
     if update_data.github_url is not None:
         current_user.github_url = update_data.github_url
     if update_data.portfolio_url is not None:
         current_user.portfolio_url = update_data.portfolio_url
+    # Extended fields
+    if update_data.location is not None:
+        current_user.location = update_data.location
+    if update_data.skills is not None:
+        current_user.skills = update_data.skills
+    if update_data.designation is not None:
+        current_user.designation = update_data.designation
+    if update_data.experience_years is not None:
+        current_user.experience_years = update_data.experience_years
+    if update_data.research_interests is not None:
+        current_user.research_interests = update_data.research_interests
+    if update_data.courses_taught is not None:
+        current_user.courses_taught = update_data.courses_taught
+    if update_data.open_to_mentor is not None:
+        current_user.open_to_mentor = update_data.open_to_mentor
+    if update_data.graduation_year is not None:
+        current_user.graduation_year = update_data.graduation_year
+    if update_data.industry is not None:
+        current_user.industry = update_data.industry
         
     db.commit()
     db.refresh(current_user)
