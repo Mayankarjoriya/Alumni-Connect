@@ -4,7 +4,7 @@ import AuthPage from './AuthPage';
 import DesktopFeed from './DesktopFeed';
 import ProfilePage from './ProfilePage';
 import AdminDashboard from './AdminDashboard';
-import BulletinBoard from './BulletinBoard';
+
 
 // Role-Based Protection Guard
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -53,12 +53,7 @@ export default function App() {
                     </PrivateRoute>
                 } />
 
-                {/* Bulletin Board — all authenticated roles */}
-                <Route path="/bulletin" element={
-                    <PrivateRoute>
-                        <BulletinBoard />
-                    </PrivateRoute>
-                } />
+
 
                 {/* Catch all fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />

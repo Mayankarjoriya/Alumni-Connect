@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.security import verify_password, get_current_user_id
+from app.core.security import verify_password, get_current_user_id, create_access_token, hash_password
 from app.models.college import College
 from app.models.user import User
 from app.schemas.auth import LoginRequest, SignUpRequest
@@ -22,6 +22,7 @@ def format_user_dict(user: User) -> dict:
         "bio": user.bio,
         "profile_picture_url": user.profile_picture_url,
         "cover_picture_url": user.cover_picture_url,
+        "resume_url": user.resume_url,
         "linkedin_url": user.linkedin_url,
         "github_url": user.github_url,
         "portfolio_url": user.portfolio_url,
@@ -38,7 +39,7 @@ def format_user_dict(user: User) -> dict:
         "graduation_year": user.graduation_year,
         "industry": user.industry,
         "badges": [{"name": b.name, "issuer": b.issuer, "date": b.date} for b in user.badges],
-        "projects": [{"id": p.id, "title": p.title, "tech": p.tech, "description": p.description, "github": p.github} for p in user.projects]
+        "projects": [{"id": p.id, "title": p.title, "tech": p.tech, "description": p.description, "github": p.github, "media_url": p.media_url, "start_month": p.start_month, "start_year": p.start_year, "end_month": p.end_month, "end_year": p.end_year, "is_current": p.is_current, "contributors": p.contributors, "associated_with": p.associated_with} for p in user.projects]
     }
 
 def get_current_user(
@@ -68,8 +69,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             detail="Your account is pending approval from your College Admin."
         )
 
+    token = create_access_token(user.id, extra={"role": user.role})
     return {
-        "access_token": f"token_{user.id}",
+        "access_token": token,
         "token_type": "bearer",
         "user": format_user_dict(user)
     }
@@ -102,6 +104,8 @@ def signup(request: SignUpRequest, db: Session = Depends(get_db)):
         is_approved=is_approved,
         credits=0
     )
+    # Hash the password before storing
+    new_user.password = hash_password(request.password)
 
     db.add(new_user)
     db.commit()
@@ -116,8 +120,9 @@ def signup(request: SignUpRequest, db: Session = Depends(get_db)):
             "user": user_dict
         }
 
+    token = create_access_token(new_id, extra={"role": request.role})
     return {
-        "access_token": f"token_{new_id}",
+        "access_token": token,
         "token_type": "bearer",
         "user": user_dict,
         "requires_approval": False

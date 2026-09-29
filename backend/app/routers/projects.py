@@ -27,7 +27,15 @@ def add_project(
         title=request.title,
         tech=request.tech_stack,
         description=request.description or "",
-        github=request.github_link or ""
+        github=request.github_link or "",
+        media_url=request.media_url,
+        start_month=request.start_month,
+        start_year=request.start_year,
+        end_month=request.end_month,
+        end_year=request.end_year,
+        is_current=request.is_current or False,
+        contributors=request.contributors,
+        associated_with=request.associated_with,
     )
 
     db.add(new_project)
@@ -39,5 +47,13 @@ def add_project(
         "title": new_project.title,
         "tech": new_project.tech,
         "description": new_project.description,
-        "github": new_project.github
+        "github": new_project.github,
+        "media_url": new_project.media_url,
+        "start_month": new_project.start_month,
+        "start_year": new_project.start_year,
+        "end_month": new_project.end_month,
+        "end_year": new_project.end_year,
+        "is_current": new_project.is_current,
+        "contributors": new_project.contributors,
+        "associated_with": new_project.associated_with,
     }

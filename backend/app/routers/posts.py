@@ -56,6 +56,7 @@ def create_post(
         author_college=user.college,
         content=request.content,
         post_type=request.post_type or "update",
+        media_url=request.media_url,
         timestamp="Just now"
     )
 

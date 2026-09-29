@@ -1,5 +1,16 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 python-multipart
 sqlalchemy
+
+# Security
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt
+
+# Rate limiting
+slowapi
+
+# Security headers
+secure

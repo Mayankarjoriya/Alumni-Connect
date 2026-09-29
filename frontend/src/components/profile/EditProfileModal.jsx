@@ -18,6 +18,7 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
         bio: '',
         profile_picture_url: '',
         cover_picture_url: '',
+        resume_url: '',
         linkedin_url: '',
         github_url: '',
         portfolio_url: '',
@@ -40,6 +41,7 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
                 bio: profileData.bio || '',
                 profile_picture_url: profileData.profile_picture_url || '',
                 cover_picture_url: profileData.cover_picture_url || '',
+                resume_url: profileData.resume_url || '',
                 linkedin_url: profileData.linkedin_url || '',
                 github_url: profileData.github_url || '',
                 portfolio_url: profileData.portfolio_url || '',
@@ -152,6 +154,25 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
                                     />
                                 </div>
                             </div>
+                            {role === 'student' && (
+                                <div>
+                                    <label className={LABEL_CLASS}>📄 Resume / CV (PDF)</label>
+                                    <div className="flex items-center gap-3">
+                                        {formData.resume_url && (
+                                            <a href={formData.resume_url} target="_blank" rel="noreferrer"
+                                                className="text-xs font-bold text-violet-600 underline flex-shrink-0 hover:text-violet-800">
+                                                View Current Resume
+                                            </a>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="application/pdf,image/*"
+                                            onChange={(e) => handleImageChange(e, 'resume_url')}
+                                            className="flex-1 px-4 py-2 text-sm text-gray-900 border border-gray-200 rounded-xl focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </Section>
 

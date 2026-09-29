@@ -18,3 +18,11 @@ class AddProjectRequest(BaseModel):
     tech_stack: str
     description: Optional[str] = ""
     github_link: Optional[str] = ""
+    media_url: Optional[str] = None
+    start_month: Optional[str] = None
+    start_year: Optional[str] = None
+    end_month: Optional[str] = None
+    end_year: Optional[str] = None
+    is_current: Optional[bool] = False
+    contributors: Optional[str] = None
+    associated_with: Optional[str] = None

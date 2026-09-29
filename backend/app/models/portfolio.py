@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Text, ForeignKey
+from sqlalchemy import Column, String, Integer, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -22,5 +22,13 @@ class Project(Base):
     tech = Column(String, nullable=False)
     description = Column(Text, default="")
     github = Column(String, default="")
+    media_url = Column(Text, nullable=True)
+    start_month = Column(String, nullable=True)
+    start_year = Column(String, nullable=True)
+    end_month = Column(String, nullable=True)
+    end_year = Column(String, nullable=True)
+    is_current = Column(Boolean, default=False)
+    contributors = Column(Text, nullable=True)    # comma-separated names
+    associated_with = Column(String, nullable=True)
 
     user = relationship("User", back_populates="projects")

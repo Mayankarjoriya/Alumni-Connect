@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Code, Plus, Award } from 'lucide-react';
+import { ArrowLeft, Code, Plus, Award, TrendingUp } from 'lucide-react';
 import api from './api/client';
 import ProfileHeader from './components/profile/ProfileHeader';
 import ProjectCard from './components/profile/ProjectCard';
@@ -11,7 +11,18 @@ import FacultyProfilePanel from './components/profile/FacultyProfilePanel';
 import AlumniProfilePanel from './components/profile/AlumniProfilePanel';
 import EvaluateModal from './components/feed/EvaluateModal';
 import ChatModal from './components/feed/ChatModal';
+import ProjectDetailsModal from './components/profile/ProjectDetailsModal';
 import DeskScene from './components/three/DeskScene';
+
+/* ─── Stat pill ─── */
+function StatPill({ value, label, color, bg }) {
+    return (
+        <div className="flex-1 rounded-xl p-3 text-center" style={{ backgroundColor: bg }}>
+            <p className="font-extrabold text-xl leading-tight" style={{ color }}>{value ?? 0}</p>
+            <p className="text-gray-500 text-[11px] font-semibold mt-0.5">{label}</p>
+        </div>
+    );
+}
 
 export default function ProfilePage() {
     const { id } = useParams();
@@ -22,6 +33,7 @@ export default function ProfilePage() {
     const [showEditProfileModal, setShowEditProfileModal] = useState(false);
     const [evalStudent, setEvalStudent] = useState(null);
     const [showChatModal, setShowChatModal] = useState(false);
+    const [selectedProject, setSelectedProject] = useState(null);
 
     // State for tabs
     const [activeTab, setActiveTab] = useState('Projects');
@@ -133,104 +145,190 @@ export default function ProfilePage() {
                     onEditProfile={() => setShowEditProfileModal(true)}
                 />
 
-                {/* Faculty Profile Panel */}
-                {profileData.role === 'faculty' && (
-                    <FacultyProfilePanel profileData={profileData} isOwnProfile={isOwnProfile} />
-                )}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column - Main Content */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Faculty Profile Panel */}
+                        {profileData.role === 'faculty' && (
+                            <FacultyProfilePanel profileData={profileData} isOwnProfile={isOwnProfile} />
+                        )}
 
-                {/* Alumni Profile Panel */}
-                {profileData.role === 'alumni' && (
-                    <AlumniProfilePanel profileData={profileData} />
-                )}
+                        {/* Alumni Profile Panel */}
+                        {profileData.role === 'alumni' && (
+                            <AlumniProfilePanel profileData={profileData} />
+                        )}
 
-                {/* Faculty Evaluation Panel (own profile only) */}
-                {currentUser.role === 'faculty' && isOwnProfile && (
-                    <FacultyEvalPanel
-                        department={profileData.department}
-                        assignedStudents={assignedStudents}
-                        onEvaluateStudent={(st) => setEvalStudent(st)}
-                    />
-                )}
+                        {/* Faculty Evaluation Panel (own profile only) */}
+                        {currentUser.role === 'faculty' && isOwnProfile && (
+                            <FacultyEvalPanel
+                                department={profileData.department}
+                                assignedStudents={assignedStudents}
+                                onEvaluateStudent={(st) => setEvalStudent(st)}
+                            />
+                        )}
 
-                {/* Custom Tabs Navigation */}
-                {profileData.role === 'student' && (
-                    <>
-                        <div className="flex items-center gap-8 border-b border-gray-200 mb-6 px-4">
-                            {['Projects', 'Badges'].map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={`pb-4 text-sm font-bold transition-colors relative ${activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-                                >
-                                    {tab}
-                                    {activeTab === tab && (
-                                        <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-gray-900 rounded-t-full"></div>
+                        {/* Custom Tabs Navigation (Students) */}
+                        {profileData.role === 'student' && (
+                            <>
+                                <div className="flex items-center gap-8 border-b border-gray-200 mb-6 px-4">
+                                    {['Projects', 'Badges'].map(tab => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveTab(tab)}
+                                            className={`pb-4 text-sm font-bold transition-colors relative ${activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                                        >
+                                            {tab}
+                                            {activeTab === tab && (
+                                                <div className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-gray-900 rounded-t-full"></div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="mb-12">
+                                    {activeTab === 'Projects' && (
+                                        <div>
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h3 className="text-lg font-black text-gray-900">Digital Workspace</h3>
+                                                {isOwnProfile && profileData.role === 'student' && (
+                                                    <button
+                                                        onClick={() => setShowAddProjectModal(true)}
+                                                        className="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors shadow-sm"
+                                                    >
+                                                        <Plus size={14} /> Upload Project
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                {profileData.projects && profileData.projects.length > 0 ? (
+                                                    profileData.projects.map((proj, idx) => (
+                                                        <ProjectCard 
+                                                            key={proj.id || idx} 
+                                                            project={proj} 
+                                                            onClick={(p) => setSelectedProject(p)} 
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
+                                                        No projects uploaded to portfolio yet.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
                                     )}
-                                </button>
-                            ))}
-                        </div>
 
-                        {/* Main Content Area */}
-                        <div className="mb-12">
-                            {activeTab === 'Projects' && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h3 className="text-lg font-black text-gray-900">Digital Workspace</h3>
-                                        {isOwnProfile && profileData.role === 'student' && (
-                                            <button
-                                                onClick={() => setShowAddProjectModal(true)}
-                                                className="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors shadow-sm"
+                                    {activeTab === 'Badges' && (
+                                        <div>
+                                            <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
+                                                <Award size={20} className="text-amber-500" /> Verified Achievements
+                                            </h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {profileData.badges && profileData.badges.length > 0 ? (
+                                                    profileData.badges.map((b, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="bg-white rounded-3xl p-5 border border-gray-100 hover:border-amber-200 transition-colors shadow-sm flex flex-col items-center text-center"
+                                                        >
+                                                            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-3">
+                                                                <Award size={24} className="text-amber-500" />
+                                                            </div>
+                                                            <p className="font-bold text-sm text-emerald-600 mb-1">{b.name}</p>
+                                                            <p className="text-[11px] text-gray-500 font-medium">By: {b.issuer}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1 font-bold">{b.date}</p>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
+                                                        No badges awarded yet.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Right Column - Sidebar */}
+                    <div className="lg:col-span-1 space-y-6">
+                        {profileData.skills && (
+                            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                                <h3 className="text-lg font-black text-gray-900 mb-2">Skills</h3>
+                                <p className="text-xs text-gray-500 mb-4 font-medium">Skills and expertise showcased by {profileData.name.split(' ')[0]}</p>
+                                
+                                <div className="flex flex-wrap gap-2">
+                                    {profileData.skills.split(',').map((skill, index) => {
+                                        if (!skill.trim()) return null;
+                                        return (
+                                            <span 
+                                                key={index} 
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-full border border-emerald-100"
                                             >
-                                                <Plus size={14} /> Upload Project
-                                            </button>
-                                        )}
-                                    </div>
+                                                {skill.trim()}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {profileData.projects && profileData.projects.length > 0 ? (
-                                            profileData.projects.map((proj, idx) => (
-                                                <ProjectCard key={proj.id || idx} project={proj} />
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
-                                                No projects uploaded to portfolio yet.
-                                            </p>
-                                        )}
+                        {/* Stats Card */}
+                        <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-5">
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">My Stats</p>
+                                <TrendingUp size={14} className="text-violet-600" />
+                            </div>
+
+                            <div className="flex justify-center mb-5">
+                                <div className="relative w-24 h-24 rounded-full border-[8px] border-violet-100 flex items-center justify-center">
+                                    <div className="absolute inset-0 rounded-full" style={{ background: `conic-gradient(#5B4DFB ${Math.min((profileData.credits || 0) / 500 * 360, 360)}deg, #EEF2FF 0deg)`, borderRadius: '50%', opacity: 0.3 }} />
+                                    <div className="text-center z-10">
+                                        <p className="text-2xl font-black text-violet-600 leading-none">{profileData.credits || 0}</p>
+                                        <p className="text-[10px] text-gray-400 font-medium mt-1">credits</p>
                                     </div>
                                 </div>
-                            )}
+                            </div>
 
-                            {activeTab === 'Badges' && (
-                                <div>
-                                    <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
-                                        <Award size={20} className="text-amber-500" /> Verified Achievements
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                        {profileData.badges && profileData.badges.length > 0 ? (
-                                            profileData.badges.map((b, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className="bg-white rounded-3xl p-5 border border-gray-100 hover:border-amber-200 transition-colors shadow-sm flex flex-col items-center text-center"
-                                                >
-                                                    <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-3">
-                                                        <Award size={24} className="text-amber-500" />
-                                                    </div>
-                                                    <p className="font-bold text-sm text-emerald-600 mb-1">{b.name}</p>
-                                                    <p className="text-[11px] text-gray-500 font-medium">By: {b.issuer}</p>
-                                                    <p className="text-[10px] text-gray-400 mt-1 font-bold">{b.date}</p>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-gray-500 py-12 text-center col-span-full font-medium">
-                                                No faculty badges awarded yet.
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                            <div className="flex gap-2">
+                                <StatPill value={profileData.badges?.length || 0} label="Badges"   color="#EC4899" bg="#FDF2F8" />
+                                <StatPill value={profileData.projects?.length || 0} label="Projects" color="#10B981" bg="#ECFDF5" />
+                            </div>
                         </div>
-                    </>
-                )}
+
+                        {/* Weekly Activity */}
+                        <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-5">Weekly Activity</p>
+                            <div className="flex items-end gap-1.5 h-20">
+                                {[40, 65, 35, 80, 55, 90, 70].map((h, i) => (
+                                    <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+                                        <div className="w-full bg-violet-600 rounded-t-sm transition-all duration-300" style={{ height: `${h}%`, opacity: 0.5 + i * 0.07 }} />
+                                        <span className="text-[10px] text-gray-400 font-medium">{['M','T','W','T','F','S','S'][i]}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Recent Badges */}
+                        {profileData.badges?.length > 0 && (
+                            <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Recent Badges</p>
+                                <div className="space-y-3">
+                                    {profileData.badges.slice(0, 4).map((b, i) => (
+                                        <div key={i} className="flex items-center gap-3 py-1">
+                                            <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-sm flex-shrink-0 shadow-sm border border-yellow-200/50">🏆</div>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-bold text-gray-800 truncate">{b.name}</p>
+                                                <p className="text-[10px] text-gray-400 truncate">{b.issuer}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Modals */}
@@ -259,6 +357,12 @@ export default function ProfilePage() {
                 activeChatUser={profileData}
                 onClose={() => setShowChatModal(false)}
                 onSelectChatUser={() => {}}
+            />
+
+            <ProjectDetailsModal
+                isOpen={!!selectedProject}
+                onClose={() => setSelectedProject(null)}
+                project={selectedProject}
             />
         </div>
     );

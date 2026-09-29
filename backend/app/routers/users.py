@@ -21,6 +21,8 @@ def update_profile(
         current_user.profile_picture_url = update_data.profile_picture_url
     if update_data.cover_picture_url is not None:
         current_user.cover_picture_url = update_data.cover_picture_url
+    if update_data.resume_url is not None:
+        current_user.resume_url = update_data.resume_url
     if update_data.linkedin_url is not None:
         current_user.linkedin_url = update_data.linkedin_url
     if update_data.github_url is not None:

@@ -13,6 +13,7 @@ class Post(Base):
     author_college = Column(String, nullable=False)
     content = Column(Text, nullable=False)
     post_type = Column(String, default="update") # update, project, job
+    media_url = Column(Text, nullable=True)
     timestamp = Column(String, default="Just now")
     created_at = Column(DateTime, default=datetime.utcnow)
 

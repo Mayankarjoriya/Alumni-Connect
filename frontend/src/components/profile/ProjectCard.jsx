@@ -1,10 +1,21 @@
 import React from 'react';
 
-export default function ProjectCard({ project }) {
+export default function ProjectCard({ project, onClick }) {
     return (
-        <div className="bg-white rounded-[2rem] p-5 border border-gray-100 hover:border-violet-200 hover:-translate-y-1 transition-all flex flex-col justify-between shadow-sm hover:shadow-lg">
+        <div 
+            onClick={() => onClick?.(project)}
+            className="bg-white rounded-[2rem] p-5 border border-gray-100 hover:border-violet-200 hover:-translate-y-1 transition-all flex flex-col justify-between shadow-sm hover:shadow-lg cursor-pointer"
+        >
             <div className="bg-gray-50 rounded-2xl w-full h-32 mb-4 flex items-center justify-center border border-gray-100 overflow-hidden relative">
-                <span className="text-gray-400 font-black text-4xl opacity-20 block">{project.title?.[0] || 'P'}</span>
+                {project.media_url ? (
+                    <img 
+                        src={project.media_url} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    />
+                ) : (
+                    <span className="text-gray-400 font-black text-4xl opacity-20 block group-hover:scale-110 transition-transform">{project.title?.[0] || 'P'}</span>
+                )}
             </div>
             <div>
                 <h4 className="font-bold text-base text-gray-900 mb-1 group-hover:text-violet-700 transition-colors leading-tight">{project.title}</h4>

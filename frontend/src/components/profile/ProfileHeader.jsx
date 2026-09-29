@@ -10,15 +10,25 @@ export default function ProfileHeader({ profileData, isOwnProfile, onSendMessage
 
     return (
         <div className="bg-white border border-gray-100 rounded-[2.5rem] mb-8 overflow-hidden shadow-sm">
-            {/* Top Banner (Gradient) */}
-            <div className="h-36 bg-gradient-to-r from-violet-200 via-purple-100 to-pink-100 relative">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-violet-400/20 blur-3xl rounded-full pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+            {/* Top Banner (Gradient or Image) */}
+            <div 
+                className="h-36 relative bg-cover bg-center bg-no-repeat"
+                style={{
+                    backgroundImage: profileData.cover_picture_url ? `url(${profileData.cover_picture_url})` : 'none',
+                    backgroundColor: profileData.cover_picture_url ? 'transparent' : undefined
+                }}
+            >
+                {!profileData.cover_picture_url && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-200 via-purple-100 to-pink-100">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-400/20 blur-3xl rounded-full pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                )}
                 
                 {/* Edit Profile Button */}
                 {isOwnProfile && onEditProfile && (
                     <button 
                         onClick={onEditProfile}
-                        className="absolute top-6 right-8 bg-white/80 hover:bg-white backdrop-blur-md text-gray-800 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center gap-2 border border-gray-100"
+                        className="absolute top-6 right-8 bg-white/80 hover:bg-white backdrop-blur-md text-gray-800 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center gap-2 border border-gray-100 z-20"
                     >
                         <Edit3 size={14} /> Edit Profile
                     </button>
@@ -75,10 +85,15 @@ export default function ProfileHeader({ profileData, isOwnProfile, onSendMessage
                                         <Mail size={16} /> Get in touch
                                     </button>
                                 )}
-                                {profileData.role === 'student' && (
-                                    <button className="bg-white border border-gray-200 text-gray-900 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm">
+                                {profileData.role === 'student' && profileData.resume_url && (
+                                    <a 
+                                        href={profileData.resume_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="bg-white border border-gray-200 text-gray-900 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
+                                    >
                                         View Resume
-                                    </button>
+                                    </a>
                                 )}
 
                                 {/* Social Links */}

@@ -58,7 +58,7 @@ export default function Sidebar({ activeTab, onSelectModal }) {
             <p className="text-[10px] text-gray-400 font-bold tracking-widest px-3 mb-1.5">OVERVIEW</p>
             <div className="space-y-0.5 mb-4">
                 <NavItem icon={Home}         label="Dashboard"      active={activeTab === 'feed'}     onClick={() => navigate('/feed')} />
-                <NavItem icon={Megaphone}    label="Bulletin Board" active={activeTab === 'bulletin'} onClick={() => navigate('/bulletin')} />
+
                 <NavItem icon={MessageSquare} label="Messages"                                        onClick={() => onSelectModal?.('messages')} />
                 <NavItem icon={User}         label="My Profile"     active={activeTab === 'profile'}  onClick={() => navigate('/profile/me')} />
             </div>

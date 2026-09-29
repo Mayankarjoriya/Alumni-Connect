@@ -46,6 +46,7 @@ class UserUpdateProfileSchema(BaseModel):
     bio: Optional[str] = None
     profile_picture_url: Optional[str] = None
     cover_picture_url: Optional[str] = None
+    resume_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
     portfolio_url: Optional[str] = None

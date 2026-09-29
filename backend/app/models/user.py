@@ -18,6 +18,7 @@ class User(Base):
     bio = Column(Text, nullable=True)
     profile_picture_url = Column(String, nullable=True)
     cover_picture_url = Column(String, nullable=True)
+    resume_url = Column(Text, nullable=True)
     linkedin_url = Column(String, nullable=True)
     github_url = Column(String, nullable=True)
     portfolio_url = Column(String, nullable=True)
