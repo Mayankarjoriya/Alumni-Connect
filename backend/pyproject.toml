@@ -10,6 +10,9 @@ dependencies = [
     "pydantic>=2.6.0",
     "python-multipart>=0.0.9",
     "sqlalchemy>=2.0.28",
+    "slowapi>=0.1.10",
+    "python-jose[cryptography]>=3.5.0",
+    "passlib>=1.7.4",
 ]
 
 [tool.uv]

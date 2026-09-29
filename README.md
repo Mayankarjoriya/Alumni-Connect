@@ -101,11 +101,15 @@ Alumni-Connect-Project/
 ```bash
 cd backend
 
+# Create and activate a virtual environment
+uv venv
+source .venv/bin/activate # On Windows use .venv\Scripts\activate
+
 # Install dependencies
-pip install -r requirements.txt
+uv sync
 
 # Start the server (auto-seeds demo data on first run)
-uvicorn main:app --reload --port 8000
+uv run uvicorn main:app --reload --port 8000
 ```
 
 > **API:** `http://localhost:8000`
