@@ -141,7 +141,7 @@ export default function ProfilePage() {
                 <ProfileHeader
                     profileData={profileData}
                     isOwnProfile={isOwnProfile}
-                    onSendMessage={() => setShowChatModal(true)}
+                    onSendMessage={() => navigate(`/messages?user=${profileData.id}`)}
                     onEditProfile={() => setShowEditProfileModal(true)}
                 />
 

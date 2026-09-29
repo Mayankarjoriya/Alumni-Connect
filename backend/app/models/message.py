@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Text, ForeignKey, DateTime, Boolean
 from app.core.database import Base
 
 class Message(Base):
@@ -11,5 +11,7 @@ class Message(Base):
     receiver_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     receiver_name = Column(String, nullable=False)
     content = Column(Text, nullable=False)
+    iv = Column(String, nullable=True)
+    is_encrypted = Column(Boolean, default=True)
     timestamp = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -1,0 +1,56 @@
+/* Messaging UI Tokens & Overrides */
+
+:root {
+  --chat-brand: #7C3AED;
+  --chat-brand-soft: #EDE9FE;
+  --chat-bg: #F8F7FC;
+  --chat-surface: rgba(255, 255, 255, 0.72);
+  --bubble-mine: linear-gradient(135deg, #7C3AED, #6366F1);
+  --bubble-theirs: #FFFFFF;
+  --chat-text: #1E1B4B;
+  --radius-bubble: 20px;
+}
+
+[data-theme="dark"] {
+  --chat-bg: #0F0D1F;
+  --chat-surface: rgba(30, 27, 75, 0.6);
+  --bubble-theirs: #1E1B4B;
+  --chat-text: #EDE9FE;
+  --chat-brand-soft: rgba(124, 58, 237, 0.2);
+}
+
+.messages-page-container {
+    background-color: var(--chat-bg);
+    color: var(--chat-text);
+}
+
+.chat-panel-surface {
+    background-color: var(--chat-surface);
+    backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.bubble-mine {
+    background: var(--bubble-mine);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble-theirs {
+    background-color: var(--bubble-theirs);
+    color: var(--chat-text);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Skeleton Shimmer */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.shimmer-anim {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(to right, #f6f7f8 4%, #edeef1 25%, #f6f7f8 36%);
+    background-size: 1000px 100%;
+}

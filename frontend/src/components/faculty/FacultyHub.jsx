@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { GraduationCap, BookOpen, Newspaper, Award, CheckCircle2, Search, MessageSquare, Plus, TrendingUp } from 'lucide-react';
 import api from '../../api/client';
 import Sidebar from '../common/Sidebar';
@@ -88,7 +88,6 @@ export default function FacultyHub() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState(null);
-    const [activeChatUser, setActiveChatUser] = useState(null);
 
     const [uploadForm, setUploadForm] = useState(EMPTY_FORM);
     const [uploadSuccess, setUploadSuccess] = useState('');
@@ -142,8 +141,8 @@ export default function FacultyHub() {
 
     const handleLike    = async (id) => { try { await api.post(`/api/posts/${id}/like`); loadData(); } catch {} };
     const handleComment = async (id, content) => { try { await api.post(`/api/posts/${id}/comment`, { content }); loadData(); } catch {} };
-    const handleCreatePost = async ({ content, post_type }) => {
-        try { await api.post('/api/posts', { content, post_type }); setActiveModal(null); loadData(); } catch {}
+    const handleCreatePost = async ({ content, post_type, media_urls }) => {
+        try { await api.post('/api/posts', { content, post_type, media_urls }); setActiveModal(null); loadData(); } catch {}
     };
 
     const field = (key) => (e) => setUploadForm(f => ({ ...f, [key]: e.target.value }));
@@ -164,7 +163,7 @@ export default function FacultyHub() {
                 <DashboardHeader
                     currentUser={currentUser}
                     onSearch={() => setActiveModal('search')}
-                    onMessages={() => setActiveModal('messages')}
+                    onMessages={() => navigate("/messages")}
                     onPost={() => setActiveModal('post')}
                 />
 
@@ -373,7 +372,7 @@ export default function FacultyHub() {
                                                     key={post.id} post={post} currentUser={currentUser}
                                                     onLike={handleLike} onComment={handleComment}
                                                     onEvaluate={() => {}}
-                                                    onChat={(u) => { setActiveChatUser(u); setActiveModal('messages'); }}
+                                                    onChat={(u) => navigate(`/messages?user=${u.id}`)}
                                                 />
                                             ))}
                                         </div>
@@ -389,7 +388,7 @@ export default function FacultyHub() {
 
             {/* Modals */}
             <CreatePostModal isOpen={activeModal === 'post'}    onClose={() => setActiveModal(null)} onSubmit={handleCreatePost} />
-            <SearchModal     isOpen={activeModal === 'search'}  onClose={() => setActiveModal(null)} onSelectUserChat={(u) => { setActiveChatUser(u); setActiveModal('messages'); }} />
+            <SearchModal     isOpen={activeModal === 'search'}  onClose={() => setActiveModal(null)} onSelectUserChat={(u) => navigate(`/messages?user=${u.id}`)} />
             <ChatModal       isOpen={activeModal === 'messages'} onClose={() => setActiveModal(null)} activeChatUser={activeChatUser} onSelectChatUser={setActiveChatUser} />
         </div>
     );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Trophy, Users, Newspaper, Search, ChevronRight, MessageSquare, Plus, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
@@ -143,8 +143,8 @@ export default function AlumniHub() {
 
     const handleLike    = async (id) => { try { await api.post(`/api/posts/${id}/like`); loadData(); } catch {} };
     const handleComment = async (id, content) => { try { await api.post(`/api/posts/${id}/comment`, { content }); loadData(); } catch {} };
-    const handleCreatePost = async ({ content, post_type }) => {
-        try { await api.post('/api/posts', { content, post_type }); setActiveModal(null); loadData(); } catch {}
+    const handleCreatePost = async ({ content, post_type, media_urls }) => {
+        try { await api.post('/api/posts', { content, post_type, media_urls }); setActiveModal(null); loadData(); } catch {}
     };
 
     // Podium helper colours
@@ -161,7 +161,7 @@ export default function AlumniHub() {
                 <DashboardHeader
                     currentUser={currentUser}
                     onSearch={() => setActiveModal('search')}
-                    onMessages={() => setActiveModal('messages')}
+                    onMessages={() => navigate("/messages")}
                     onPost={() => setActiveModal('post')}
                 />
 
@@ -326,8 +326,7 @@ export default function AlumniHub() {
                                                 <button
                                                     onClick={e => {
                                                         e.stopPropagation();
-                                                        setActiveChatUser(person);
-                                                        setActiveModal('messages');
+                                                        navigate(`/messages?user=${person.id}`);
                                                     }}
                                                     className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors flex-shrink-0"
                                                     title="Send message"
@@ -367,7 +366,7 @@ export default function AlumniHub() {
                                                     key={post.id} post={post} currentUser={currentUser}
                                                     onLike={handleLike} onComment={handleComment}
                                                     onEvaluate={() => {}}
-                                                    onChat={(u) => { setActiveChatUser(u); setActiveModal('messages'); }}
+                                                    onChat={(u) => navigate(`/messages?user=${u.id}`)}
                                                 />
                                             ))}
                                         </div>
@@ -383,7 +382,7 @@ export default function AlumniHub() {
 
             {/* Modals */}
             <CreatePostModal isOpen={activeModal === 'post'}     onClose={() => setActiveModal(null)} onSubmit={handleCreatePost} />
-            <SearchModal     isOpen={activeModal === 'search'}   onClose={() => setActiveModal(null)} onSelectUserChat={(u) => { setActiveChatUser(u); setActiveModal('messages'); }} />
+            <SearchModal     isOpen={activeModal === 'search'}   onClose={() => setActiveModal(null)} onSelectUserChat={(u) => navigate(`/messages?user=${u.id}`)} />
             <ChatModal       isOpen={activeModal === 'messages'} onClose={() => setActiveModal(null)} activeChatUser={activeChatUser} onSelectChatUser={setActiveChatUser} />
         </div>
     );

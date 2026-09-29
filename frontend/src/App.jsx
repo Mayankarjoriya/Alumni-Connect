@@ -6,6 +6,8 @@ import ProfilePage from './ProfilePage';
 import AdminDashboard from './AdminDashboard';
 
 
+import MessagesPage from './pages/MessagesPage';
+
 // Role-Based Protection Guard
 const PrivateRoute = ({ children, allowedRoles }) => {
     const token = localStorage.getItem('token');
@@ -39,6 +41,13 @@ export default function App() {
                     </PrivateRoute>
                 } />
 
+                {/* Messages Page - E2EE messaging */}
+                <Route path="/messages" element={
+                    <PrivateRoute allowedRoles={['student', 'faculty', 'alumni']}>
+                        <MessagesPage />
+                    </PrivateRoute>
+                } />
+
                 {/* Dedicated College Admin Dashboard */}
                 <Route path="/admin" element={
                     <PrivateRoute allowedRoles={['college_admin']}>
@@ -52,8 +61,6 @@ export default function App() {
                         <ProfilePage />
                     </PrivateRoute>
                 } />
-
-
 
                 {/* Catch all fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />

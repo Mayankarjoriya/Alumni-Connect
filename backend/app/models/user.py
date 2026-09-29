@@ -35,6 +35,7 @@ class User(Base):
     open_to_mentor = Column(Boolean, default=False)         # Alumni
     graduation_year = Column(String, nullable=True)         # Alumni / Student
     industry = Column(String, nullable=True)                # Alumni industry sector
+    public_key = Column(Text, nullable=True)                # ECDH JWK public key
 
     # Relationships
     badges = relationship("Badge", back_populates="user", cascade="all, delete-orphan", lazy="selectin")

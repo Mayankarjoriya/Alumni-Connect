@@ -5,9 +5,31 @@ from sqlalchemy import or_
 from app.core.database import get_db
 from app.models.user import User
 from app.routers.auth import format_user_dict, get_current_user
-from app.schemas.user import UserUpdateProfileSchema
+from app.schemas.user import UserUpdateProfileSchema, PublicKeyUpdate
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
+
+@router.post("/public-key")
+def upload_public_key(
+    data: PublicKeyUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    current_user.public_key = data.public_key
+    db.commit()
+    return {"message": "Public key uploaded successfully"}
+
+@router.get("/{user_id}/public-key")
+def get_public_key(
+    user_id: str,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.public_key:
+        raise HTTPException(status_code=404, detail="Public key not found for this user")
+    return {"public_key": user.public_key}
 
 @router.patch("/me")
 def update_profile(

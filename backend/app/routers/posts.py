@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
@@ -10,6 +11,11 @@ from app.schemas.post import CreatePostRequest, CommentRequest
 router = APIRouter(prefix="/api/posts", tags=["Posts"])
 
 def format_post_dict(post: Post) -> dict:
+    try:
+        media_urls = json.loads(post.media_url) if post.media_url else []
+    except:
+        media_urls = [post.media_url] if post.media_url else []
+
     return {
         "id": post.id,
         "author_id": post.author_id,
@@ -18,6 +24,7 @@ def format_post_dict(post: Post) -> dict:
         "author_college": post.author_college,
         "content": post.content,
         "post_type": post.post_type,
+        "media_urls": media_urls,
         "likes": [like.user_id for like in post.likes],
         "comments": [
             {"id": c.id, "author_name": c.author_name, "content": c.content}
@@ -56,7 +63,7 @@ def create_post(
         author_college=user.college,
         content=request.content,
         post_type=request.post_type or "update",
-        media_url=request.media_url,
+        media_url=json.dumps(request.media_urls) if request.media_urls else None,
         timestamp="Just now"
     )
 

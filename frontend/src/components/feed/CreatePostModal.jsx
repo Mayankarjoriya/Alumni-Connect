@@ -4,7 +4,7 @@ import { X, Image as ImageIcon, Smile, FileText, Globe, Clock } from 'lucide-rea
 export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
     const [content, setContent] = useState('');
     const [postType, setPostType] = useState('update');
-    const [mediaUrl, setMediaUrl] = useState(null);
+    const [mediaUrls, setMediaUrls] = useState([]);
     const fileInputRef = useRef(null);
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{"name":"User","role":"student"}');
@@ -13,24 +13,32 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!content.trim() && !mediaUrl) return;
-        onSubmit({ content, post_type: postType, media_url: mediaUrl });
+        if (!content.trim() && mediaUrls.length === 0) return;
+        onSubmit({ content, post_type: postType, media_urls: mediaUrls });
         setContent('');
         setPostType('update');
-        setMediaUrl(null);
+        setMediaUrls([]);
     };
 
     const handleImageUpload = (e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setMediaUrl(reader.result);
-            reader.readAsDataURL(file);
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            Promise.all(
+                files.map(file => {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
+                })
+            ).then(results => {
+                setMediaUrls(prev => [...prev, ...results]);
+            });
         }
     };
 
-    const removeImage = () => {
-        setMediaUrl(null);
+    const removeImage = (index) => {
+        setMediaUrls(prev => prev.filter((_, i) => i !== index));
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -70,7 +78,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
                 {/* ── Body ────────────────────────────────────────────────────────── */}
                 <div className="p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col min-h-[250px]">
                     <textarea
-                        rows={mediaUrl ? 3 : 8}
+                        rows={mediaUrls.length > 0 ? 3 : 8}
                         placeholder="Share your thoughts..."
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
@@ -78,15 +86,19 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
                         autoFocus
                     />
                     
-                    {mediaUrl && (
-                        <div className="relative mt-4 bg-gray-50 rounded-xl border border-gray-100 p-2 group">
-                            <button 
-                                onClick={removeImage}
-                                className="absolute top-4 right-4 bg-gray-900/60 hover:bg-gray-900 text-white p-1.5 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                                <X size={14} />
-                            </button>
-                            <img src={mediaUrl} alt="Preview" className="w-full max-h-64 object-contain rounded-lg" />
+                    {mediaUrls.length > 0 && (
+                        <div className={`mt-4 grid gap-2 ${mediaUrls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            {mediaUrls.map((url, index) => (
+                                <div key={index} className="relative bg-gray-50 rounded-xl border border-gray-100 p-2 group">
+                                    <button 
+                                        onClick={() => removeImage(index)}
+                                        className="absolute top-4 right-4 bg-gray-900/60 hover:bg-gray-900 text-white p-1.5 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                    <img src={url} alt={`Preview ${index}`} className="w-full h-48 object-cover rounded-lg" />
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -97,6 +109,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
                         <input
                             type="file"
                             accept="image/*"
+                            multiple
                             className="hidden"
                             ref={fileInputRef}
                             onChange={handleImageUpload}
@@ -107,7 +120,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
                             className="p-2.5 text-gray-500 hover:bg-gray-100 hover:text-violet-600 rounded-full transition-colors relative group"
                         >
                             <ImageIcon size={20} />
-                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">Add a photo</span>
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">Add photo(s)</span>
                         </button>
                         <button className="p-2.5 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
                             <Smile size={20} />
@@ -123,7 +136,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={!content.trim() && !mediaUrl}
+                            disabled={!content.trim() && mediaUrls.length === 0}
                             className="bg-violet-600 hover:bg-violet-700 disabled:bg-gray-200 disabled:text-gray-400 px-6 py-2 rounded-full text-sm font-bold text-white transition-colors"
                         >
                             Post

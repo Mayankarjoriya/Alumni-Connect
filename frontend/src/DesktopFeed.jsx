@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, MessageSquare, Plus, Pencil, Users, Rss, Flame } from 'lucide-react';
 import api from './api/client';
 import Sidebar from './components/common/Sidebar';
@@ -137,6 +138,7 @@ export default function DesktopFeed() {
     const [posts, setPosts]           = useState([]);
     const [activeModal, setActiveModal] = useState(null);
     const [loading, setLoading]       = useState(true);
+    const navigate = useNavigate();
     const [activeChatUser, setActiveChatUser] = useState(null);
     const [evalStudent, setEvalStudent]       = useState(null);
     const [activeFilter, setActiveFilter]     = useState('all');
@@ -155,12 +157,12 @@ export default function DesktopFeed() {
 
     useEffect(() => { fetchPosts(); }, []);
 
-    const handleCreatePost = async ({ content, post_type, media_url }) => {
-        try { await api.post('/api/posts', { content, post_type, media_url }); setActiveModal(null); fetchPosts(); } catch {}
+    const handleCreatePost = async ({ content, post_type, media_urls }) => {
+        try { await api.post('/api/posts', { content, post_type, media_urls }); setActiveModal(null); fetchPosts(); } catch {}
     };
     const handleLike    = async (id) => { try { await api.post(`/api/posts/${id}/like`); fetchPosts(); } catch {} };
     const handleComment = async (id, content) => { try { await api.post(`/api/posts/${id}/comment`, { content }); fetchPosts(); } catch {} };
-    const handleOpenChat     = (user)    => { setActiveChatUser(user); setActiveModal('messages'); };
+    const handleOpenChat     = (user)    => { navigate(`/messages?user=${user.id}`); };
     const handleOpenEvaluate = (student) => { setEvalStudent(student); setActiveModal('evaluate'); };
 
     const filteredPosts = activeFilter === 'all' 
@@ -188,7 +190,7 @@ export default function DesktopFeed() {
                         <button onClick={() => setActiveModal('post')} className="bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-md shadow-violet-100">
                             <Plus size={14} /> New Post
                         </button>
-                        <button onClick={() => setActiveModal('messages')} className="w-9 h-9 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors">
+                        <button onClick={() => navigate("/messages")} className="w-9 h-9 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors">
                             <MessageSquare size={16} className="text-gray-500" />
                         </button>
                         <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 ml-1">

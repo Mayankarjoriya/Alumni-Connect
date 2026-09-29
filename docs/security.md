@@ -29,6 +29,17 @@ Client Request
 
 ---
 
+## 🔒 End-to-End Encryption (E2EE) Messaging
+
+To protect sensitive user communications, all direct messages are strictly end-to-end encrypted directly within the browser using the **Web Crypto API**. The server only ever sees and stores the AES-GCM ciphertext, preventing unauthorized data access or database breaches from exposing message content.
+
+- **Key Generation**: Browser generates an ECDH P-256 Keypair; the private key is stored non-extractably in IndexedDB.
+- **Key Exchange**: The public key is sent to the backend. When messaging, users fetch each other's public keys.
+- **Shared Secret**: Browsers derive a robust shared secret using Elliptic-Curve Diffie-Hellman (ECDH).
+- **Encryption Algorithm**: AES-GCM (256-bit) secures the message payloads using random Initialization Vectors (IV).
+
+---
+
 ## 1. Authentication — JWT (JSON Web Tokens)
 
 **Library:** `python-jose[cryptography]`  

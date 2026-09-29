@@ -148,7 +148,7 @@ npm run dev
 | 🏆 Badge System | Faculty awards verified achievement badges to students |
 | 📰 Social Feed | Posts with likes, comments, and real-time-style updates |
 | 📢 Bulletin Board | Announcements categorized by role (Jobs, Research, Events) |
-| 💬 Messaging | Direct messaging between users |
+| 💬 End-to-End Encrypted Messaging | Direct messaging secured with ECDH (P-256) & AES-GCM cryptography directly in the browser |
 | 🛡️ Admin Panel | Department management, user approvals, platform oversight |
 | 🎨 3D UI | Interactive Three.js 3D desk scenes on the feed page |
 

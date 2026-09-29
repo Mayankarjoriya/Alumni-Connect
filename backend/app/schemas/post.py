@@ -4,7 +4,7 @@ from typing import List, Optional
 class CreatePostRequest(BaseModel):
     content: str
     post_type: Optional[str] = "update" # 'project', 'job', 'update'
-    media_url: Optional[str] = None
+    media_urls: Optional[List[str]] = []
     project_link: Optional[str] = None
 
 class CommentRequest(BaseModel):
@@ -26,7 +26,7 @@ class PostResponse(BaseModel):
     author_college: str
     content: str
     post_type: str
-    media_url: Optional[str] = None
+    media_urls: List[str] = []
     likes: List[str] = [] # list of user_ids
     comments: List[CommentResponse] = []
     timestamp: str

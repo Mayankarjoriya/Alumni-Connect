@@ -135,13 +135,17 @@ export default function PostCard({ post, currentUser, onLike, onComment, onEvalu
                 </div>
 
                 {/* ── Media ──────────────────────────────────────── */}
-                {post.media_url && (
-                    <div className="mb-4 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center max-h-96">
-                        <img 
-                            src={post.media_url} 
-                            alt="Post media" 
-                            className="max-w-full max-h-96 object-contain"
-                        />
+                {post.media_urls && post.media_urls.length > 0 && (
+                    <div className={`mb-4 grid gap-2 ${post.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        {post.media_urls.map((url, i) => (
+                            <div key={i} className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
+                                <img 
+                                    src={url} 
+                                    alt={`Post media ${i}`} 
+                                    className="max-w-full max-h-96 object-contain"
+                                />
+                            </div>
+                        ))}
                     </div>
                 )}
 

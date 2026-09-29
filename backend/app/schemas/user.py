@@ -60,3 +60,6 @@ class UserUpdateProfileSchema(BaseModel):
     open_to_mentor: Optional[bool] = None
     graduation_year: Optional[str] = None
     industry: Optional[str] = None
+
+class PublicKeyUpdate(BaseModel):
+    public_key: str

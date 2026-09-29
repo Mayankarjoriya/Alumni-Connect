@@ -34,7 +34,10 @@ def get_conversations(
                 "role": other_user.role,
                 "college": other_user.college,
                 "last_message": m.content,
-                "timestamp": m.timestamp
+                "last_message_iv": m.iv,
+                "last_message_is_encrypted": m.is_encrypted,
+                "timestamp": m.timestamp,
+                "unread_count": 0
             }
 
     return list(conversations.values())
@@ -42,17 +45,25 @@ def get_conversations(
 @router.get("/{other_user_id}")
 def get_messages_with_user(
     other_user_id: str,
+    after: Optional[str] = None,
     authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     current_id = get_current_user_id(authorization)
 
-    messages = db.query(Message).filter(
+    query = db.query(Message).filter(
         or_(
             and_(Message.sender_id == current_id, Message.receiver_id == other_user_id),
             and_(Message.sender_id == other_user_id, Message.receiver_id == current_id)
         )
-    ).order_by(Message.created_at.asc()).all()
+    )
+
+    if after:
+        after_msg = db.query(Message).filter(Message.id == after).first()
+        if after_msg:
+            query = query.filter(Message.created_at > after_msg.created_at)
+
+    messages = query.order_by(Message.created_at.asc()).all()
 
     return [
         {
@@ -62,6 +73,8 @@ def get_messages_with_user(
             "receiver_id": m.receiver_id,
             "receiver_name": m.receiver_name,
             "content": m.content,
+            "iv": m.iv,
+            "is_encrypted": m.is_encrypted,
             "timestamp": m.timestamp
         }
         for m in messages
@@ -90,6 +103,8 @@ def send_message(
         receiver_id=receiver.id,
         receiver_name=receiver.name,
         content=request.content,
+        iv=request.iv,
+        is_encrypted=request.is_encrypted,
         timestamp=datetime.now().strftime("%I:%M %p")
     )
 
@@ -104,5 +119,7 @@ def send_message(
         "receiver_id": new_msg.receiver_id,
         "receiver_name": new_msg.receiver_name,
         "content": new_msg.content,
+        "iv": new_msg.iv,
+        "is_encrypted": new_msg.is_encrypted,
         "timestamp": new_msg.timestamp
     }
