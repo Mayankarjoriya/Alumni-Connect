@@ -54,6 +54,7 @@ export default function PostCard({ post, currentUser, onLike, onComment, onEvalu
     const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const type = TYPE_CONFIG[post.post_type] || TYPE_CONFIG.general;
     const isLong = post.content?.length > 200;
@@ -134,18 +135,43 @@ export default function PostCard({ post, currentUser, onLike, onComment, onEvalu
                     )}
                 </div>
 
-                {/* ── Media ──────────────────────────────────────── */}
+                {/* ── Media Slider ──────────────────────────────────────── */}
                 {post.media_urls && post.media_urls.length > 0 && (
-                    <div className={`mb-4 grid gap-2 ${post.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        {post.media_urls.map((url, i) => (
-                            <div key={i} className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
-                                <img 
-                                    src={url} 
-                                    alt={`Post media ${i}`} 
-                                    className="max-w-full max-h-96 object-contain"
-                                />
-                            </div>
-                        ))}
+                    <div className="mb-4 relative rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center min-h-[300px]">
+                        <img 
+                            src={post.media_urls[currentImageIndex]} 
+                            alt={`Post media ${currentImageIndex + 1}`} 
+                            className="max-w-full max-h-[500px] object-contain transition-opacity duration-300"
+                        />
+                        
+                        {post.media_urls.length > 1 && (
+                            <>
+                                {/* Arrows */}
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(i => i === 0 ? post.media_urls.length - 1 : i - 1); }}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                                >
+                                    <span className="font-bold text-lg leading-none transform -translate-x-[1px]">‹</span>
+                                </button>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(i => i === post.media_urls.length - 1 ? 0 : i + 1); }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                                >
+                                    <span className="font-bold text-lg leading-none transform translate-x-[1px]">›</span>
+                                </button>
+                                
+                                {/* Dots */}
+                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/20 px-2 py-1.5 rounded-full backdrop-blur-sm">
+                                    {post.media_urls.map((_, i) => (
+                                        <button 
+                                            key={i}
+                                            onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(i); }}
+                                            className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'}`}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 

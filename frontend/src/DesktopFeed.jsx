@@ -245,13 +245,15 @@ export default function DesktopFeed() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="columns-1 xl:columns-2 gap-4 space-y-4">
+                            <div className="flex flex-col gap-6 items-center w-full">
                                 {filteredPosts.map(post => (
-                                    <PostCard
-                                        key={post.id} post={post} currentUser={currentUser}
-                                        onLike={handleLike} onComment={handleComment}
-                                        onEvaluate={handleOpenEvaluate} onChat={handleOpenChat}
-                                    />
+                                    <div key={post.id} className="w-full max-w-3xl">
+                                        <PostCard
+                                            post={post} currentUser={currentUser}
+                                            onLike={handleLike} onComment={handleComment}
+                                            onEvaluate={handleOpenEvaluate} onChat={handleOpenChat}
+                                        />
+                                    </div>
                                 ))}
                             </div>
                         )}

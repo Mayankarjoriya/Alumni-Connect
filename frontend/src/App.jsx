@@ -7,6 +7,8 @@ import AdminDashboard from './AdminDashboard';
 
 
 import MessagesPage from './pages/MessagesPage';
+import LeaderboardPage from './pages/LeaderboardPage';
+import DirectoryPage from './pages/DirectoryPage';
 
 // Role-Based Protection Guard
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -38,6 +40,20 @@ export default function App() {
                 <Route path="/feed" element={
                     <PrivateRoute allowedRoles={['student', 'faculty', 'alumni']}>
                         <DesktopFeed />
+                    </PrivateRoute>
+                } />
+
+                {/* Leaderboard Page */}
+                <Route path="/leaderboard" element={
+                    <PrivateRoute allowedRoles={['student', 'faculty', 'alumni']}>
+                        <LeaderboardPage />
+                    </PrivateRoute>
+                } />
+
+                {/* Directory Page */}
+                <Route path="/directory" element={
+                    <PrivateRoute allowedRoles={['student', 'faculty', 'alumni']}>
+                        <DirectoryPage />
                     </PrivateRoute>
                 } />
 

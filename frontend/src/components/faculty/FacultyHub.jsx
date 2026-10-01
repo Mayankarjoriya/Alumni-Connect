@@ -88,6 +88,7 @@ export default function FacultyHub() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState(null);
+    const [activeChatUser, setActiveChatUser] = useState(null);
 
     const [uploadForm, setUploadForm] = useState(EMPTY_FORM);
     const [uploadSuccess, setUploadSuccess] = useState('');
