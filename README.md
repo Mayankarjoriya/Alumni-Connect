@@ -72,6 +72,10 @@ Alumni-Connect-Project/
 │   │   │   ├── profile/        # Profile header, edit modal, project modal
 │   │   │   └── three/          # Three.js 3D scene components
 │   │   ├── App.jsx             # Root component with routing
+│   │   ├── pages/              # Dedicated route pages
+│   │   │   ├── LeaderboardPage.jsx
+│   │   │   ├── DirectoryPage.jsx
+│   │   │   └── MessagesPage.jsx
 │   │   ├── AuthPage.jsx
 │   │   ├── DesktopFeed.jsx
 │   │   ├── ProfilePage.jsx

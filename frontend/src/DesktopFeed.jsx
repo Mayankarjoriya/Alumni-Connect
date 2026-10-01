@@ -100,38 +100,6 @@ function FilterTabs({ active, onChange }) {
     );
 }
 
-/* ── Dashboard banner ─────────────────────────────────────────────────────── */
-function DashboardBanner({ currentUser }) {
-    return (
-        <div className="bg-gradient-to-r from-violet-600 via-violet-700 to-indigo-700 rounded-2xl p-6 text-white relative overflow-hidden flex-shrink-0">
-            {/* Decorative blobs */}
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/5 rounded-full" />
-            <div className="absolute right-12 bottom-0 w-24 h-24 bg-white/5 rounded-full" />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/[0.07] font-black select-none leading-none" style={{ fontSize: 100 }}>✦</div>
-
-            <span className="text-[10px] font-black bg-white/20 border border-white/20 px-3 py-1 rounded-full inline-block mb-3 uppercase tracking-widest">
-                Student Dashboard
-            </span>
-            <h2 className="text-2xl font-extrabold leading-tight mb-1">
-                {greet()}, {currentUser.name?.split(' ')[0]}! 🔥
-            </h2>
-            <p className="text-white/60 text-sm mb-5">Stay active, earn credits, and connect with your network.</p>
-
-            <div className="flex gap-3">
-                {[
-                    { val: currentUser.credits || 0,          label: 'Credits',  bg: '#7C3AED' },
-                    { val: currentUser.badges?.length || 0,   label: 'Badges',   bg: '#DB2777' },
-                    { val: currentUser.projects?.length || 0, label: 'Projects', bg: '#059669' },
-                ].map(({ val, label, bg }) => (
-                    <div key={label} className="flex-1 rounded-xl p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(4px)' }}>
-                        <p className="font-extrabold text-xl leading-tight text-white">{val}</p>
-                        <p className="text-white/60 text-[11px] font-semibold mt-0.5">{label}</p>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
 
 /* ── Main ─────────────────────────────────────────────────────────────────── */
 export default function DesktopFeed() {
@@ -209,8 +177,6 @@ export default function DesktopFeed() {
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                     <div className="w-full space-y-4 pb-6">
 
-                        {/* Banner */}
-                        <DashboardBanner currentUser={currentUser} />
 
                         {/* Create post bar */}
                         <CreatePostBar currentUser={currentUser} onPost={() => setActiveModal('post')} />
