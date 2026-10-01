@@ -1,8 +1,8 @@
 # Alumni Connect Platform
 
 ## Collabrators
-* [Gaurav](https://github.com/stargaurav2004-hhh)
-* [Mayank](https://github.com/Mayankarjoriya)
+* [Gaurav]
+* [Mayank]
 
 > A full-stack, role-based academic networking platform for Students, Faculty, Alumni, and College Admins — built with FastAPI + React.
 
