@@ -120,6 +120,8 @@ Default: `http://127.0.0.1:8000`
 - **Google Fonts** — *Plus Jakarta Sans* as the primary typeface
 - **Three.js** (`@react-three/fiber` + `@react-three/drei`) for 3D scenes
 - **Lucide React** for icons
+- **Comprehensive Guide** — See [Theme & Design System Guide](./Theme.md) for full color tokens, typography scales, role identities, and UI specifications.
+
 
 ---
 

@@ -74,8 +74,12 @@ backend/
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|
 | `PATCH` | `/api/users/me` | Update own profile | ✅ Bearer |
+| `POST` | `/api/users/extract-linkedin` | Extract metadata & skills from LinkedIn URL | ✅ Bearer |
+| `POST` | `/api/users/parse-linkedin-text` | Parse pasted LinkedIn profile snippet | ✅ Bearer |
 | `GET` | `/api/users/{user_id}` | Get any user profile | No |
 | `GET` | `/api/users/search` | Search users by name/role/college | No |
+| `POST` | `/api/users/public-key` | Upload E2E encryption public key | ✅ Bearer |
+| `GET` | `/api/users/{user_id}/public-key` | Fetch user's public key for messaging | No |
 
 **PATCH `/api/users/me` — Accepted Fields:**
 ```json

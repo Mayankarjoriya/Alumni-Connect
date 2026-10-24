@@ -63,3 +63,10 @@ class UserUpdateProfileSchema(BaseModel):
 
 class PublicKeyUpdate(BaseModel):
     public_key: str
+
+class LinkedInExtractRequest(BaseModel):
+    linkedin_url: str
+
+class LinkedInSnippetRequest(BaseModel):
+    text: str
+

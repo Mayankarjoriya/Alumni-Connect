@@ -192,6 +192,7 @@ Env Variable   : VITE_API_BASE_URL=https://your-api.onrender.com
 | [Database Guide](docs/database.md) | Schema, table relationships, ER diagram |
 | [Security Guide](docs/security.md) | JWT, bcrypt, middleware, rate limiting |
 | [Tech Stack](docs/TechStack.md) | Full dependency list with versions and purpose |
+| [Theme & Design System](docs/Theme.md) | Visual identity, color palette, typography, and UI/UX design tokens |
 
 ---
 

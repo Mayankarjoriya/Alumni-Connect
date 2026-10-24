@@ -5,7 +5,8 @@ from sqlalchemy import or_
 from app.core.database import get_db
 from app.models.user import User
 from app.routers.auth import format_user_dict, get_current_user
-from app.schemas.user import UserUpdateProfileSchema, PublicKeyUpdate
+from app.schemas.user import UserUpdateProfileSchema, PublicKeyUpdate, LinkedInExtractRequest, LinkedInSnippetRequest
+from app.services.linkedin_extractor import fetch_linkedin_profile, parse_pasted_linkedin_text
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -106,6 +107,40 @@ def search_users(
 
     users = query.all()
     return [format_user_dict(u) for u in users]
+
+@router.post("/extract-linkedin")
+async def extract_linkedin_data(
+    payload: LinkedInExtractRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Extract public profile details (bio, headline, company, designation, skills, photo)
+    from a LinkedIn URL.
+    """
+    try:
+        result = await fetch_linkedin_profile(payload.linkedin_url)
+        return result
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract LinkedIn profile: {str(e)}")
+
+@router.post("/parse-linkedin-text")
+def parse_linkedin_text(
+    payload: LinkedInSnippetRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Parse a copied/pasted LinkedIn profile or resume snippet to extract structured details.
+    """
+    if not payload.text or not payload.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+    data = parse_pasted_linkedin_text(payload.text)
+    return {
+        "success": True,
+        "data": data,
+        "message": "Successfully parsed profile snippet."
+    }
 
 @router.get("/{user_id}")
 def get_user_profile(user_id: str, db: Session = Depends(get_db)):

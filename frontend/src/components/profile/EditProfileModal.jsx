@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Image as ImageIcon, Code, Briefcase, User, Globe, MapPin, BookOpen, Star, Zap, GraduationCap, Plus } from 'lucide-react';
+import { X, Image as ImageIcon, Code, Briefcase, User, Globe, MapPin, BookOpen, Star, Zap, GraduationCap, Plus, Sparkles, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import api from '../../api/client';
 
 const INPUT_CLASS = "w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 text-sm font-medium transition-all";
 const LABEL_CLASS = "block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1.5";
@@ -34,6 +35,106 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
         graduation_year: '',
         industry: '',
     });
+
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [extractStatus, setExtractStatus] = useState(null);
+    const [showTextFallback, setShowTextFallback] = useState(false);
+    const [pastedSnippet, setPastedSnippet] = useState('');
+
+    const handleExtractLinkedIn = async (customUrl = null) => {
+        const targetUrl = customUrl || formData.linkedin_url;
+        if (!targetUrl || !targetUrl.trim()) {
+            setExtractStatus({
+                type: 'error',
+                message: 'Please enter a LinkedIn profile URL (e.g. https://www.linkedin.com/in/username).'
+            });
+            return;
+        }
+
+        setIsExtracting(true);
+        setExtractStatus(null);
+
+        try {
+            const res = await api.post('/api/users/extract-linkedin', {
+                linkedin_url: targetUrl.trim()
+            });
+
+            if (res.success && res.data) {
+                const d = res.data;
+                const newSkills = d.skills || [];
+                const existingSkills = formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+                const mergedSkills = Array.from(new Set([...existingSkills, ...newSkills])).join(',');
+
+                setFormData(prev => ({
+                    ...prev,
+                    bio: d.bio ? d.bio : prev.bio,
+                    location: d.location ? d.location : prev.location,
+                    designation: d.designation ? d.designation : prev.designation,
+                    industry: d.company ? d.company : prev.industry,
+                    profile_picture_url: d.profile_picture_url ? d.profile_picture_url : prev.profile_picture_url,
+                    skills: mergedSkills || prev.skills,
+                    linkedin_url: d.linkedin_url || targetUrl.trim()
+                }));
+
+                setExtractStatus({
+                    type: 'success',
+                    message: `Extracted details for ${d.name || 'profile'}! Form has been updated.`,
+                    data: d
+                });
+                setShowTextFallback(false);
+            } else if (res.is_authwall) {
+                setExtractStatus({
+                    type: 'notice',
+                    message: res.message || 'LinkedIn restricted anonymous public access for this URL. You can paste your profile summary or experience text below to extract.'
+                });
+                setShowTextFallback(true);
+            } else {
+                setExtractStatus({
+                    type: 'error',
+                    message: res.message || 'Could not extract details from this LinkedIn URL.'
+                });
+            }
+        } catch (err) {
+            setExtractStatus({
+                type: 'error',
+                message: err.message || 'Failed to connect to extraction service.'
+            });
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
+    const handleExtractFromSnippet = async () => {
+        if (!pastedSnippet.trim()) return;
+        setIsExtracting(true);
+        try {
+            const res = await api.post('/api/users/parse-linkedin-text', { text: pastedSnippet });
+            if (res.success && res.data) {
+                const d = res.data;
+                const newSkills = d.skills || [];
+                const existingSkills = formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+                const mergedSkills = Array.from(new Set([...existingSkills, ...newSkills])).join(',');
+
+                setFormData(prev => ({
+                    ...prev,
+                    bio: d.bio ? d.bio : prev.bio,
+                    designation: d.designation ? d.designation : prev.designation,
+                    industry: d.company ? d.company : prev.industry,
+                    skills: mergedSkills || prev.skills,
+                }));
+                setExtractStatus({
+                    type: 'success',
+                    message: 'Extracted details from text snippet and updated your profile!'
+                });
+                setShowTextFallback(false);
+                setPastedSnippet('');
+            }
+        } catch (err) {
+            setExtractStatus({ type: 'error', message: err.message || 'Failed to parse text.' });
+        } finally {
+            setIsExtracting(false);
+        }
+    };
 
     useEffect(() => {
         if (profileData && isOpen) {
@@ -122,6 +223,101 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto custom-scrollbar">
+
+                    {/* ─── LinkedIn Auto-Import Card ─── */}
+                    <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-violet-50/70 border border-blue-100 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-3 mb-2.5">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-xl bg-[#0a66c2] text-white flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+                                    in
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                                        Extract Data from LinkedIn
+                                        <span className="bg-blue-100 text-[#0a66c2] text-[10px] px-2 py-0.5 rounded-full font-bold">1-Click AutoFill</span>
+                                    </p>
+                                    <p className="text-[11px] text-gray-500 font-medium">
+                                        Import bio, headline, company, location, skills & profile photo automatically.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <input
+                                type="url"
+                                value={formData.linkedin_url}
+                                onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                                placeholder="Paste LinkedIn URL (e.g. https://www.linkedin.com/in/username)"
+                                className="flex-1 px-3.5 py-2 text-xs rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-gray-800"
+                            />
+                            <button
+                                type="button"
+                                disabled={isExtracting}
+                                onClick={() => handleExtractLinkedIn()}
+                                className="px-4 py-2 bg-[#0a66c2] hover:bg-[#004182] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50 cursor-pointer"
+                            >
+                                {isExtracting ? (
+                                    <>
+                                        <Loader2 size={13} className="animate-spin" />
+                                        Extracting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={13} />
+                                        Extract Data
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Status Message */}
+                        {extractStatus && (
+                            <div className={`mt-2.5 p-2.5 rounded-xl text-xs flex items-center gap-2 ${
+                                extractStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
+                                extractStatus.type === 'notice' ? 'bg-amber-50 text-amber-800 border border-amber-200' :
+                                'bg-rose-50 text-rose-800 border border-rose-200'
+                            }`}>
+                                {extractStatus.type === 'success' && <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />}
+                                {extractStatus.type === 'notice' && <AlertCircle size={14} className="text-amber-600 flex-shrink-0" />}
+                                {extractStatus.type === 'error' && <AlertCircle size={14} className="text-rose-600 flex-shrink-0" />}
+                                <span className="font-medium flex-1">{extractStatus.message}</span>
+                            </div>
+                        )}
+
+                        {/* Fallback Snippet Paste Mode */}
+                        {showTextFallback && (
+                            <div className="mt-3 p-3 bg-white rounded-xl border border-amber-200">
+                                <p className="text-[11px] font-bold text-gray-700 mb-1.5">
+                                    Paste LinkedIn "About" or profile summary text:
+                                </p>
+                                <textarea
+                                    rows={2}
+                                    value={pastedSnippet}
+                                    onChange={(e) => setPastedSnippet(e.target.value)}
+                                    placeholder="Paste your copied LinkedIn bio, headline, or summary..."
+                                    className="w-full p-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 mb-2 font-medium resize-none"
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTextFallback(false)}
+                                        className="px-2.5 py-1 text-[11px] text-gray-500 hover:text-gray-700 font-semibold"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={isExtracting || !pastedSnippet.trim()}
+                                        onClick={handleExtractFromSnippet}
+                                        className="px-3 py-1 bg-[#0a66c2] text-white text-[11px] font-bold rounded-lg hover:bg-blue-800 disabled:opacity-50 cursor-pointer"
+                                    >
+                                        Parse & Apply
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {/* === COMMON FIELDS === */}
                     <Section title="Profile Images">
@@ -316,8 +512,20 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <label className={LABEL_CLASS}><Briefcase size={13} className="text-[#0a66c2]" /> LinkedIn URL</label>
-                                <input type="url" name="linkedin_url" value={formData.linkedin_url} onChange={handleChange}
-                                    placeholder="https://linkedin.com/in/..." className={INPUT_CLASS} />
+                                <div className="flex gap-2">
+                                    <input type="url" name="linkedin_url" value={formData.linkedin_url} onChange={handleChange}
+                                        placeholder="https://linkedin.com/in/..." className={INPUT_CLASS} />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleExtractLinkedIn()}
+                                        disabled={isExtracting || !formData.linkedin_url}
+                                        className="px-3 py-2 bg-blue-50 text-[#0a66c2] hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50 cursor-pointer"
+                                        title="Auto-fill profile from this LinkedIn URL"
+                                    >
+                                        <Sparkles size={13} />
+                                        <span className="hidden sm:inline">Extract</span>
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label className={LABEL_CLASS}><Code size={13} className="text-gray-900" /> GitHub URL</label>

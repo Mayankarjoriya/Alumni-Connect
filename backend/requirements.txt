@@ -3,6 +3,8 @@ uvicorn[standard]
 pydantic
 python-multipart
 sqlalchemy
+httpx
+beautifulsoup4
 
 # Security
 python-jose[cryptography]
