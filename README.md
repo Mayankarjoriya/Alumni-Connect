@@ -53,8 +53,11 @@ Alumni-Connect-Project/
 │   │   │   ├── admin.py
 │   │   │   └── bulletin.py
 │   │   ├── schemas/            # Pydantic Request/Response Schemas
+│   │   ├── services/           # External Services & AI (LinkedIn & LLM Extractor)
+│   │   │   └── linkedin_extractor.py
 │   │   ├── seed.py             # Demo data seeder
 │   │   └── main.py             # App entry point + middleware stack
+│   ├── .env.example            # Environment variables template
 │   ├── alumni_connect.db       # SQLite database (auto-created)
 │   ├── requirements.txt
 │   └── logs/                   # Rotating log files (auto-created)
@@ -159,6 +162,7 @@ npm run dev
 | 💬 End-to-End Encrypted Messaging | Direct messaging secured with ECDH (P-256) & AES-GCM cryptography directly in the browser |
 | 🛡️ Admin Panel | Department management, user approvals, platform oversight |
 | 🎨 3D UI | Interactive Three.js 3D desk scenes on the feed page |
+| 🤖 AI LinkedIn Autofill | 1-click profile & skills extraction powered by OpenRouter / DeepSeek & social crawlers |
 
 ---
 
@@ -193,6 +197,7 @@ Env Variable   : VITE_API_BASE_URL=https://your-api.onrender.com
 | [Security Guide](docs/security.md) | JWT, bcrypt, middleware, rate limiting |
 | [Tech Stack](docs/TechStack.md) | Full dependency list with versions and purpose |
 | [Theme & Design System](docs/Theme.md) | Visual identity, color palette, typography, and UI/UX design tokens |
+| [Production & Features Guide](docs/production.md) | Comprehensive feature catalog, production architecture, cloud tools & scaling requirements |
 
 ---
 

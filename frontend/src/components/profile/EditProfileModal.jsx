@@ -71,6 +71,7 @@ export default function EditProfileModal({ isOpen, onClose, profileData, onSubmi
                     location: d.location ? d.location : prev.location,
                     designation: d.designation ? d.designation : prev.designation,
                     industry: d.company ? d.company : prev.industry,
+                    graduation_year: d.graduation_year ? d.graduation_year : prev.graduation_year,
                     profile_picture_url: d.profile_picture_url ? d.profile_picture_url : prev.profile_picture_url,
                     skills: mergedSkills || prev.skills,
                     linkedin_url: d.linkedin_url || targetUrl.trim()

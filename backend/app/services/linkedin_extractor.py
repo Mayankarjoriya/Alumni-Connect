@@ -2,7 +2,7 @@
 LinkedIn profile data extraction service.
 Supports extracting public profile metadata (OpenGraph, Schema.org JSON-LD Person data,
 and Social Link Preview data), bypassing authwalls via social crawler emulation,
-and parsing pasted LinkedIn profile snippets.
+intelligent skill mining from posts/corpus, and parsing pasted LinkedIn profile snippets.
 """
 
 import re
@@ -12,26 +12,74 @@ import logging
 from typing import Dict, Any, List, Optional
 import httpx
 from bs4 import BeautifulSoup
+from app.core.config import settings
 
 logger = logging.getLogger("linkedin_extractor")
 
-# Common technical, AI/ML, and academic skills to identify from profile text
-COMMON_SKILLS_DICTIONARY = [
-    # Programming Languages
-    "Python", "JavaScript", "TypeScript", "Java", "C++", "C#", "C", "Go", "Rust", "Swift", "Kotlin", "SQL",
+# Pattern-based skills dictionary for high-precision extraction
+SKILL_PATTERNS = [
     # AI / ML / Data Science
-    "Machine Learning", "Deep Learning", "Reinforcement Learning", "NLP", "Natural Language Processing",
-    "Computer Vision", "Artificial Intelligence", "Generative AI", "LLMs", "Large Language Models",
-    "Data Science", "Neural Networks", "PyTorch", "TensorFlow", "Keras", "Scikit-Learn", "OpenCV",
-    "Transformers", "Hugging Face", "Pandas", "NumPy",
-    # Web & Backend
-    "React", "Node.js", "FastAPI", "Django", "Flask", "Express", "Next.js", "Vue.js", "Tailwind CSS",
-    "HTML5", "CSS3", "REST APIs", "GraphQL", "WebSockets",
-    # Databases & Cloud / DevOps
-    "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Docker", "Kubernetes", "AWS", "Azure", "GCP",
-    "Git", "GitHub", "Linux", "CI/CD", "DevOps",
-    # Management & Soft Skills
-    "Project Management", "Agile", "Scrum", "Product Management", "Leadership", "Cybersecurity", "Blockchain"
+    ("Artificial Intelligence", [r"\bAI\b", r"\bAI/ML\b", r"artificial\s*intelligence"]),
+    ("Machine Learning", [r"\bML\b", r"\bAI/ML\b", r"machine\s*learning"]),
+    ("Deep Learning", [r"deep\s*learning"]),
+    ("Reinforcement Learning", [r"reinforcement\s*learning"]),
+    ("Computer Vision", [r"computer\s*vision", r"\bOCR\b"]),
+    ("NLP", [r"\bNLP\b", r"natural\s*language\s*processing"]),
+    ("LLMs", [r"\bLLMs?\b", r"large\s*language\s*models?"]),
+    ("Generative AI", [r"generative\s*ai", r"\bGenAI\b"]),
+    ("Agentic AI", [r"agentic\s*ai", r"\bAI\s*Agents?\b"]),
+    ("Data Science", [r"data\s*science", r"data\s*analytics"]),
+    ("PyTorch", [r"\bPyTorch\b"]),
+    ("TensorFlow", [r"\bTensorFlow\b"]),
+    ("Keras", [r"\bKeras\b"]),
+    ("Scikit-Learn", [r"scikit-learn|sklearn"]),
+    ("OpenCV", [r"\bOpenCV\b"]),
+    ("Transformers", [r"\bTransformers?\b", r"hugging\s*face"]),
+    
+    # Core CS & Web
+    ("Computer Science", [r"computer\s*science", r"\bCSE\b"]),
+    ("Python", [r"\bPython\b"]),
+    ("JavaScript", [r"\bJavaScript\b", r"\bJS\b"]),
+    ("TypeScript", [r"\bTypeScript\b", r"\bTS\b"]),
+    ("Java", [r"\bJava\b"]),
+    ("C++", [r"\bC\+\+\b"]),
+    ("C#", [r"\bC#\b"]),
+    ("C", [r"\bC\s*programming\b", r"\bC\s*language\b"]),
+    ("Go", [r"\bGolang\b", r"\bGo\s*language\b"]),
+    ("Rust", [r"\bRust\b"]),
+    ("SQL", [r"\bSQL\b"]),
+    ("PostgreSQL", [r"postgres(?:ql)?"]),
+    ("MySQL", [r"mysql"]),
+    ("MongoDB", [r"mongodb"]),
+    ("Redis", [r"redis"]),
+    ("React", [r"\bReact(?:\.js)?\b"]),
+    ("Node.js", [r"\bNode(?:\.js)?\b"]),
+    ("FastAPI", [r"\bFastAPI\b"]),
+    ("Django", [r"\bDjango\b"]),
+    ("Flask", [r"\bFlask\b"]),
+    ("Next.js", [r"\bNext(?:\.js)?\b"]),
+    ("Tailwind CSS", [r"tailwind(?:\s*css)?"]),
+    ("HTML5", [r"\bHTML5?\b"]),
+    ("CSS3", [r"\bCSS3?\b"]),
+    ("REST APIs", [r"rest(?:ful)?\s*apis?"]),
+    ("GraphQL", [r"\bGraphQL\b"]),
+    
+    # Cloud & DevOps
+    ("AWS", [r"\bAWS\b", r"amazon\s*web\s*services"]),
+    ("Azure", [r"\bAzure\b"]),
+    ("GCP", [r"\bGCP\b", r"google\s*cloud"]),
+    ("Docker", [r"docker"]),
+    ("Kubernetes", [r"kubernetes|\bk8s\b"]),
+    ("Git", [r"\bGit\b", r"github"]),
+    ("Linux", [r"linux"]),
+    ("CI/CD", [r"ci/cd"]),
+    
+    # Management & Professional
+    ("Project Management", [r"project\s*management"]),
+    ("Agile", [r"\bagile\b"]),
+    ("Scrum", [r"\bscrum\b"]),
+    ("Cybersecurity", [r"cybersecurity|cyber\s*security"]),
+    ("Blockchain", [r"blockchain"]),
 ]
 
 
@@ -48,16 +96,16 @@ def clean_linkedin_url(url: str) -> Optional[str]:
 
 
 def extract_skills_from_text(text: str) -> List[str]:
-    """Scan text against a curated skills dictionary."""
+    """Scan text against pattern-based skill definitions."""
     if not text:
         return []
     found_skills = []
-    text_lower = f" {text.lower()} "
-    for skill in COMMON_SKILLS_DICTIONARY:
-        pattern = r"\b" + re.escape(skill.lower()) + r"\b"
-        if re.search(pattern, text_lower):
-            if skill not in found_skills:
-                found_skills.append(skill)
+    for skill_name, patterns in SKILL_PATTERNS:
+        for p in patterns:
+            if re.search(p, text, re.IGNORECASE):
+                if skill_name not in found_skills:
+                    found_skills.append(skill_name)
+                break
     return found_skills
 
 
@@ -72,6 +120,7 @@ def extract_from_public_html(html_content: str, url: str) -> Dict[str, Any]:
     bio = ""
     location = ""
     profile_pic = ""
+    graduation_year = ""
     education: List[str] = []
 
     # 1. Inspect Schema.org JSON-LD for Person entity
@@ -161,15 +210,36 @@ def extract_from_public_html(html_content: str, url: str) -> Dict[str, Any]:
     if not profile_pic and og_img:
         profile_pic = og_img
 
-    # Parse title like: "Mayank Rajoriya - Sabudh Foundation | LinkedIn"
+    # Parse title like:
+    # "Mayank Rajoriya - Sabudh Foundation | LinkedIn"
+    # or "JAVVAJI BHUVI - Hyderabad, Telangana, India | Professional Profile | LinkedIn"
     if og_title:
-        title_clean = re.sub(r"\s*\|\s*LinkedIn\s*$", "", og_title, flags=re.IGNORECASE).strip()
+        title_clean = re.sub(r"\s*\|\s*(?:Professional Profile\s*\|\s*)?LinkedIn\s*$", "", og_title, flags=re.IGNORECASE)
+        title_clean = re.sub(r"\s*\|\s*Professional Profile\s*$", "", title_clean, flags=re.IGNORECASE).strip()
+        
         if " - " in title_clean:
             parts = title_clean.split(" - ", 1)
             if not name:
                 name = parts[0].strip()
-            if not company:
-                company = parts[1].strip()
+            second_part = parts[1].strip()
+
+            # Location detection heuristics:
+            # If the subtitle contains known geography words or comma-separated regions, it is LOCATION, not company!
+            loc_indicators = [
+                'india', 'usa', 'united states', 'hyderabad', 'bangalore', 'mumbai',
+                'delhi', 'chennai', 'pune', 'jaipur', 'area', 'region', 'city', 'state'
+            ]
+            is_location_subtitle = (
+                any(ind in second_part.lower() for ind in loc_indicators) or
+                ("," in second_part and len(second_part.split(",")) >= 2)
+            )
+
+            if is_location_subtitle:
+                if not location:
+                    location = second_part
+            else:
+                if not company:
+                    company = second_part
         elif not name:
             name = title_clean
 
@@ -201,12 +271,10 @@ def extract_from_public_html(html_content: str, url: str) -> Dict[str, Any]:
             headline = first_line
 
         if not bio:
-            clean_bio = re.sub(r"<br\s*/?>", "\n", headline_candidate, flags=re.IGNORECASE)
-            bio = clean_bio
+            bio = headline_candidate
 
     # Clean up designation from headline if empty
     if headline and not designation:
-        # Check patterns like "Role at Company" or "Role | Details"
         role_part = headline
         if "|" in role_part:
             role_part = role_part.split("|")[0].strip()
@@ -215,6 +283,10 @@ def extract_from_public_html(html_content: str, url: str) -> Dict[str, Any]:
         
         # Remove leading emoji/symbols from designation
         clean_role = re.sub(r"^[^\w]+", "", role_part).strip()
+        clean_role = re.sub(r"^I['’]m (?:a|an)\s+", "", clean_role, flags=re.IGNORECASE)
+        clean_role = re.sub(r"\s+from the Class of \d{4}.*$", "", clean_role, flags=re.IGNORECASE)
+        clean_role = re.sub(r",\s*passionate about.*$", "", clean_role, flags=re.IGNORECASE)
+        clean_role = re.sub(r"[…\.]+$", "", clean_role).strip()
         match = re.search(r"^(.*?)\s+(?:at|@)\s+(.*?)$", clean_role, re.IGNORECASE)
         if match:
             designation = match.group(1).strip()
@@ -223,8 +295,15 @@ def extract_from_public_html(html_content: str, url: str) -> Dict[str, Any]:
         else:
             designation = clean_role
 
-    # Extract detected skills from all text corpus
-    combined_corpus = f"{name} {headline} {designation} {company} {bio} {' '.join(education)}"
+    # Detect graduation year (e.g. "Class of 2026", "Batch of 2024")
+    grad_m = re.search(r"\b(?:Class of|Batch of|Graduating in|Graduation:?)\s*(20\d\d)\b", f"{headline} {bio}", re.IGNORECASE)
+    if grad_m:
+        graduation_year = grad_m.group(1)
+
+    # Gather full visible page corpus to extract maximum skill signals (including public posts and hashtags)
+    main_el = soup.find("main") or soup.find("body")
+    page_text = main_el.get_text(separator=" ", strip=True) if main_el else ""
+    combined_corpus = f"{name} {headline} {designation} {company} {bio} {' '.join(education)} {page_text}"
     skills = extract_skills_from_text(combined_corpus)
 
     return {
@@ -234,6 +313,7 @@ def extract_from_public_html(html_content: str, url: str) -> Dict[str, Any]:
         "company": company.strip() if company else None,
         "bio": re.sub(r"<br\s*/?>", "\n", bio).strip() if bio else None,
         "location": location.strip() if location else None,
+        "graduation_year": graduation_year if graduation_year else None,
         "profile_picture_url": profile_pic if profile_pic else None,
         "education": education,
         "skills": skills,
@@ -253,7 +333,6 @@ async def fetch_linkedin_profile(url: str) -> Dict[str, Any]:
         raise ValueError("Please provide a valid LinkedIn profile URL (e.g., https://www.linkedin.com/in/username)")
 
     # User agents to try sequentially:
-    # Social preview agents bypass Cloudflare / HTTP 999 authwalls because LinkedIn allows rich link unfurling.
     USER_AGENTS = [
         "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
         "Twitterbot/1.0",
@@ -261,8 +340,6 @@ async def fetch_linkedin_profile(url: str) -> Dict[str, Any]:
         "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     ]
-
-    last_error_message = None
 
     for ua in USER_AGENTS:
         headers = {
@@ -287,6 +364,28 @@ async def fetch_linkedin_profile(url: str) -> Dict[str, Any]:
 
                 if response.status_code == 200:
                     extracted = extract_from_public_html(response.text, canonical_url)
+                    
+                    # If an LLM API key (DeepSeek / Groq / OpenRouter) is configured, use it for deep AI extraction
+                    if settings.LLM_API_KEY and settings.LLM_API_KEY.strip():
+                        soup = BeautifulSoup(response.text, "html.parser")
+                        main_el = soup.find("main") or soup.find("body")
+                        page_text = main_el.get_text(separator=" ", strip=True) if main_el else ""
+                        og_desc_el = soup.find("meta", property="og:description")
+                        og_desc_txt = og_desc_el["content"] if og_desc_el and og_desc_el.has_attr("content") else ""
+                        raw_corpus = f"{extracted.get('headline')} {og_desc_txt} {page_text}"
+
+                        ai_data = await extract_with_llm(raw_corpus)
+                        if ai_data and (ai_data.get("name") or ai_data.get("headline")):
+                            # Preserve OpenGraph profile photo & canonical URL
+                            ai_data["profile_picture_url"] = extracted.get("profile_picture_url")
+                            ai_data["linkedin_url"] = canonical_url
+                            ai_data["skills_string"] = ", ".join(ai_data.get("skills", []))
+                            return {
+                                "success": True,
+                                "data": ai_data,
+                                "message": f"Successfully extracted details for {ai_data.get('name') or 'user'} using {settings.LLM_MODEL} AI."
+                            }
+
                     if extracted.get("name") or extracted.get("headline") or extracted.get("bio"):
                         return {
                             "success": True,
@@ -294,8 +393,7 @@ async def fetch_linkedin_profile(url: str) -> Dict[str, Any]:
                             "message": f"Successfully extracted details for {extracted.get('name') or 'user'}."
                         }
 
-        except Exception as e:
-            last_error_message = str(e)
+        except Exception:
             continue
 
     # If all automated user-agents encountered authwalls
@@ -310,10 +408,98 @@ async def fetch_linkedin_profile(url: str) -> Dict[str, Any]:
     }
 
 
-def parse_pasted_linkedin_text(text: str) -> Dict[str, Any]:
+async def extract_with_llm(raw_text: str) -> Optional[Dict[str, Any]]:
     """
-    Parse a pasted snippet of LinkedIn profile text (e.g. copied from LinkedIn or resume).
+    Use an OpenAI-compatible LLM endpoint (DeepSeek, Groq, OpenRouter) to extract
+    structured profile details from raw profile text, resume snippets, or HTML.
     """
+    if not settings.LLM_API_KEY or not settings.LLM_API_KEY.strip():
+        return None
+
+    endpoint = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {settings.LLM_API_KEY.strip()}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:5173",
+        "X-Title": "Alumni Connect"
+    }
+
+    prompt = f"""You are an expert resume and academic profile parser. Analyze the following profile text or web data and extract clean, structured information into JSON.
+
+Profile Text:
+\"\"\"
+{raw_text[:4000]}
+\"\"\"
+
+Output a valid JSON object with the following fields:
+- "name": Full name of the person (string or null)
+- "headline": Professional headline (string or null)
+- "designation": Clean job title or academic role (e.g. 'Software Engineer', 'AI/ML Researcher', 'BS Computer Science student') (string or null)
+- "company": Current organization or company worked for. If the person is currently a student and has no active corporate job, set this to null. (string or null)
+- "location": City, State, Country (string or null)
+- "graduation_year": 4-digit graduation year if mentioned or inferable (string or null)
+- "education": Array of university or college names (array of strings)
+- "skills": Array of technical, engineering, and academic skills found or inferred from the text (array of strings)
+- "bio": A concise, engaging 2-3 sentence biography based on their background (string)
+
+Return ONLY valid JSON with no extra commentary or markdown formatting."""
+
+    payload = {
+        "model": settings.LLM_MODEL,
+        "messages": [
+            {"role": "system", "content": "You are a professional profile information extractor. Always return JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.1,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            # First attempt with json_object format if supported
+            resp = await client.post(
+                endpoint,
+                headers=headers,
+                json={**payload, "response_format": {"type": "json_object"}}
+            )
+
+            # If model doesn't support response_format (e.g. some HuggingFace/OpenRouter free models)
+            if resp.status_code == 400 and ("response_format" in resp.text.lower() or "json" in resp.text.lower()):
+                resp = await client.post(endpoint, headers=headers, json=payload)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                
+                # Extract JSON substring from content
+                json_match = re.search(r"\{[\s\S]*\}", content)
+                if json_match:
+                    parsed = json.loads(json_match.group(0))
+                    parsed["source"] = f"{settings.LLM_MODEL}_ai"
+                    return parsed
+                else:
+                    logger.warning(f"No JSON found in LLM response: {content[:200]}")
+                    return None
+            else:
+                logger.warning(f"LLM API ({settings.LLM_MODEL}) returned status {resp.status_code}: {resp.text}")
+                return None
+    except Exception as e:
+        logger.error(f"Error querying LLM API: {e}")
+        return None
+
+
+async def parse_pasted_linkedin_text(text: str) -> Dict[str, Any]:
+    """
+    Parse a pasted snippet of LinkedIn profile text or resume chunk.
+    Uses DeepSeek/LLM if API key is configured, with regex line fallback.
+    """
+    # 1. Try LLM extraction first if configured
+    if settings.LLM_API_KEY and settings.LLM_API_KEY.strip():
+        ai_data = await extract_with_llm(text)
+        if ai_data and (ai_data.get("name") or ai_data.get("skills")):
+            ai_data["skills_string"] = ", ".join(ai_data.get("skills", []))
+            return ai_data
+
+    # 2. Heuristic fallback
     lines = [line.strip() for line in text.strip().split("\n") if line.strip()]
     if not lines:
         return {}

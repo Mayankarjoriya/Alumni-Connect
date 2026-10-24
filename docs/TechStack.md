@@ -60,6 +60,14 @@
 | **limits** | 5.8+ | Storage backends for slowapi |
 | **secure** | 2.0+ | Security header helpers |
 
+### Web Scraping & AI Extraction
+
+| Package | Version | Purpose |
+|---|---|---|
+| **httpx** | 0.28+ | High-performance async HTTP client for crawlers & LLM APIs |
+| **beautifulsoup4** | 4.12+ | HTML parser for OpenGraph tags & JSON-LD metadata |
+| **python-dotenv** | 1.0+ | Dynamic environment variable management & hot-reloading |
+
 ### Logging & Utilities
 
 | Package | Purpose |
@@ -74,8 +82,10 @@
 
 | Service | Usage |
 |---|---|
+| **OpenRouter / DeepSeek / Groq** | LLM API for parsing raw LinkedIn text into structured profile JSON |
 | **Google Fonts** | *Plus Jakarta Sans* typography (loaded via CSS) |
 | **Lucide Icons CDN** | SVG icons (bundled via npm package) |
+| **LinkedIn Social Scraper** | Emulated crawler engine for 1-click profile auto-population |
 
 ---
 
@@ -87,6 +97,9 @@ uvicorn[standard]
 pydantic
 python-multipart
 sqlalchemy
+httpx
+beautifulsoup4
+python-dotenv
 
 # Security
 python-jose[cryptography]

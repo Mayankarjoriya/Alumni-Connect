@@ -39,6 +39,8 @@ backend/
 │   │   ├── message.py
 │   │   ├── bulletin.py
 │   │   └── admin.py
+│   ├── services/              # External integrations & AI extraction
+│   │   └── linkedin_extractor.py
 │   ├── seed.py                # Demo data seeder (runs once on startup)
 │   └── main.py                # App factory + middleware stack
 ├── alumni_connect.db          # SQLite database (auto-created)
@@ -195,6 +197,30 @@ Set these in your shell or a `.env` file (loaded via `os.getenv`):
 | `CORS_ORIGINS` | `http://localhost:5173,...` | Comma-separated allowed origins |
 | `RATE_LIMIT` | `60/minute` | Requests per IP per minute |
 | `ENVIRONMENT` | `development` | `development` or `production` |
+| `LLM_PROVIDER` | `openrouter` | AI provider (`openrouter`, `deepseek`, `groq`) |
+| `LLM_API_KEY` | `""` | API key for profile structuring |
+| `LLM_MODEL` | `nvidia/nemotron-3.5-lightning:free` | Model identifier |
+| `LLM_BASE_URL` | `https://openrouter.ai/api/v1` | OpenAI-compatible endpoint |
+
+---
+
+## 🤖 LinkedIn & AI Profile Extraction Service
+
+Located at `app/services/linkedin_extractor.py`.
+
+### Multi-Tier Architecture:
+1. **Bypass LinkedIn Authwall (HTTP 999)**: Rotates social preview user agents (`facebookexternalhit/1.1`, `Twitterbot`, `WhatsApp`) to fetch public OpenGraph and JSON-LD schema metadata without being blocked.
+2. **AI Structuring Layer**:
+   - Queries configured LLM (OpenRouter / DeepSeek / Groq) with structured JSON prompts.
+   - Automatically retries without `response_format` if an LLM rejects schema enforcement, extracting JSON via regular expressions.
+3. **Deterministic Heuristic Fallback**:
+   - High-precision regex pattern matchers for Indian & international geography strings (e.g. `Hyderabad, Telangana, India`).
+   - Headline designation extractor (strips conversational fluff like `Passionate Student @...`).
+   - Corpus-wide skill mining engine matching 60+ computer science, data, and engineering competencies.
+4. **Pasted Text Fallback**:
+   - Enables users to paste full LinkedIn "About" or experience summaries directly for instant extraction.
+
+> For enterprise production scraping APIs (ScrapingDog, Proxycurl) and scaling requirements, refer to the [Production Guide](production.md).
 
 ---
 

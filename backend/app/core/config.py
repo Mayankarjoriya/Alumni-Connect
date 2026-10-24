@@ -1,5 +1,13 @@
 import os
 from typing import List
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    def load_dotenv(*args, **kwargs):
+        pass
+
+
 
 class Settings:
     PROJECT_NAME: str = "Alumni Connect API - Centralized Platform"
@@ -23,6 +31,22 @@ class Settings:
 
     # Environment
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")  # development | production
+
+    # AI / LLM Profile Extraction (DeepSeek / Groq / OpenRouter / OpenAI compatible)
+    @property
+    def LLM_API_KEY(self) -> str:
+        load_dotenv(override=True)
+        return os.getenv("LLM_API_KEY", "").strip()
+
+    @property
+    def LLM_BASE_URL(self) -> str:
+        load_dotenv(override=True)
+        return os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1").strip()
+
+    @property
+    def LLM_MODEL(self) -> str:
+        load_dotenv(override=True)
+        return os.getenv("LLM_MODEL", "nvidia/nemotron-3.5-lightning:free").strip()
 
     @property
     def is_production(self) -> bool:

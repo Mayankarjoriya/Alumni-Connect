@@ -126,16 +126,17 @@ async def extract_linkedin_data(
         raise HTTPException(status_code=500, detail=f"Failed to extract LinkedIn profile: {str(e)}")
 
 @router.post("/parse-linkedin-text")
-def parse_linkedin_text(
+async def parse_linkedin_text(
     payload: LinkedInSnippetRequest,
     current_user: User = Depends(get_current_user)
 ):
     """
     Parse a copied/pasted LinkedIn profile or resume snippet to extract structured details.
+    Uses DeepSeek / LLM if configured, with regex fallback.
     """
     if not payload.text or not payload.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty.")
-    data = parse_pasted_linkedin_text(payload.text)
+    data = await parse_pasted_linkedin_text(payload.text)
     return {
         "success": True,
         "data": data,

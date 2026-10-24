@@ -5,6 +5,7 @@ python-multipart
 sqlalchemy
 httpx
 beautifulsoup4
+python-dotenv
 
 # Security
 python-jose[cryptography]

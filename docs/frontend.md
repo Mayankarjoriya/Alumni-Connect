@@ -47,6 +47,11 @@ frontend/src/
 │       ├── DeskScene.jsx      # Three.js 3D desk on Feed page
 │       └── BooksScene.jsx     # Three.js 3D books decorations
 ├── App.jsx                    # Root router + auth context
+├── pages/
+│   ├── LeaderboardPage.jsx    # Campus achievement leaderboard
+│   ├── DirectoryPage.jsx      # Discover students, alumni & faculty
+│   └── MessagesPage.jsx       # Dedicated E2E encrypted messenger
+├── App.jsx                    # Root router + role-based auth guard
 ├── AuthPage.jsx               # Login + Registration form
 ├── DesktopFeed.jsx            # Main social feed page
 ├── ProfilePage.jsx            # User profile with sidebar layout
@@ -61,15 +66,16 @@ frontend/src/
 
 Handled with **React Router v6** in [`App.jsx`](../frontend/src/App.jsx).
 
-| Path | Component | Auth Required |
-|---|---|---|
-| `/` | `LandingPage` | No |
-| `/auth` | `AuthPage` | No |
-| `/feed` | `DesktopFeed` | Yes |
-| `/profile/:userId` | `ProfilePage` | Yes |
-| `/profile/me` | `ProfilePage` (own) | Yes |
-| `/admin` | `AdminDashboard` | Yes (admin only) |
-| `/bulletin` | `BulletinBoard` | Yes |
+| Path | Component | Auth Required | Allowed Roles |
+|---|---|---|---|
+| `/` | `LandingPage` | No | Public |
+| `/login` | `AuthPage` | No | Public |
+| `/feed` | `DesktopFeed` | Yes | `student`, `faculty`, `alumni` |
+| `/profile/:id` | `ProfilePage` | Yes | All authenticated |
+| `/leaderboard` | `LeaderboardPage` | Yes | `student`, `faculty`, `alumni` |
+| `/directory` | `DirectoryPage` | Yes | `student`, `faculty`, `alumni` |
+| `/messages` | `MessagesPage` | Yes | `student`, `faculty`, `alumni` |
+| `/admin` | `AdminDashboard` | Yes | `college_admin` only |
 
 ---
 
@@ -154,6 +160,12 @@ Default: `http://127.0.0.1:8000`
 | Skills (pill input) | ✅ | ✅ | ✅ |
 | Industry / Open to Mentor | — | — | ✅ |
 | LinkedIn / GitHub / Portfolio | ✅ | ✅ | ✅ |
+
+### 🤖 1-Click LinkedIn AI AutoFill
+- **Auto-Extraction Card**: Embedded directly at the top of [`EditProfileModal.jsx`](../frontend/src/components/profile/EditProfileModal.jsx).
+- **One-Click Parse**: Inputting a profile URL and clicking "Auto Fill" triggers `POST /api/users/extract-linkedin`.
+- **Live Visual State**: Displays animated spinner, glowing indicator, and auto-populates Bio, Location, Company, Designation, Graduation Year, Profile Photo, and merges parsed skills directly into active tags.
+- **Raw Text / Summary Fallback**: Collapsible drawer allows pasting raw LinkedIn experience summaries or "About" text with instant AI structuring via `POST /api/users/parse-linkedin-text`.
 
 ---
 

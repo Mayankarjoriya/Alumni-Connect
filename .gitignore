@@ -1,5 +1,24 @@
-# Python
+# ─── Environment Variables & Secrets ───
+.env
+.env.*
+*.env
+backend/.env
+frontend/.env
+# Keep templates tracked:
+!.env.example
+!.env.*.example
+!backend/.env.example
+
+# ─── Databases & SQLite ───
+*.db
+*.sqlite
+*.sqlite3
+alumni_connect.db
+backend/alumni_connect.db
+
+# ─── Python Bytecode & Cache ───
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -25,31 +44,34 @@ htmlcov/
 .tox/
 .nox/
 .venv
+.venv/
 venv/
 ENV/
 env/
-alumni_connect.db
-backend/logs/
-.env
 
-# Node
-node_modules/
-dist/
-dist-ssr/
-*.local
-.npm
+# ─── Logs ───
+logs/
+backend/logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# ─── Node & Frontend ───
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+dist-ssr/
+*.local
+.npm
 .eslintcache
 .stylelintcache
 
-# Mac/OS
+# ─── OS & IDE ───
 .DS_Store
 Thumbs.db
-
-# Editor
 .vscode/
 .idea/
 *.suo
@@ -57,3 +79,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
